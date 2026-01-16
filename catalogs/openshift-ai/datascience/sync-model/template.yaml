@@ -116,8 +116,8 @@ spec:
             model: ${{ parameters.modelName }}-model
           chart:
             name: "rhoai-sync-model"
-            chartUrl: "https://poc-examples.github.io/supporting-charts"
-            chartVersion: "0.1.18"
+            chartUrl: "https://na-launch-workshop.github.io/platform-supporting-charts"
+            chartVersion: "1.0.0"
           projectName: "${{ parameters.projectEntity | parseEntityRef | pick('name') }}"
           automated:
             prune: true

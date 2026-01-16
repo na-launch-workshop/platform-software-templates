@@ -1,7 +1,7 @@
 helmCharts:
   - name: "kafka-instance"
-    repo: "https://poc-examples.github.io/supporting-charts"
-    version: "0.0.5"
+    repo: "https://na-launch-workshop.github.io/platform-supporting-charts"
+    version: "1.0.0"
     namespace: "${{ values.name }}-kafka"
     valuesInline:
       name: ${{ values.name }}-instance

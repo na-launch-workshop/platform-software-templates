@@ -79,8 +79,8 @@ spec:
           syncWave: "-1"
           chart:
             name: "rhoai-data-science-project"
-            chartUrl: "https://poc-examples.github.io/supporting-charts"
-            chartVersion: "0.1.10"
+            chartUrl: "https://na-launch-workshop.github.io/platform-supporting-charts"
+            chartVersion: "1.0.0"
           projectName: "self-service"
           automated:
             prune: true

@@ -9,7 +9,7 @@ spec:
     server: 'https://kubernetes.default.svc'
   source:
     chart: pipeline
-    repoURL: "https://poc-examples.github.io/charts"
+    repoURL: "https://na-launch-workshop.github.io/platform-charts"
     targetRevision: 0.2.1
     helm:
       valuesObject:

@@ -5,7 +5,7 @@ projects:
   - name: software-templates
     git: 
       remotes:
-        origin: "https://github.com/poc-examples/software-templates.git"
+        origin: "https://github.com/na-launch-workshop/platform-software-templates.git"
 components:
   - name: vscode-editor
     container:

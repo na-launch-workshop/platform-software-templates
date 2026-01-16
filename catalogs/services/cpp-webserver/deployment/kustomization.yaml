@@ -4,7 +4,7 @@ kind: Kustomization
 helmCharts:
 
   - name: web-service
-    repo: "https://poc-examples.github.io/charts"
+    repo: "https://na-launch-workshop.github.io/platform-charts"
     version: 0.1.7
     valuesInline:   
       fullnameOverride: "${{ values.repoName }}"

@@ -147,8 +147,8 @@ spec:
             modelServer: ${{ parameters.modelName }}-model-server
           chart:
             name: "rhoai-single-model-server"
-            chartUrl: "https://poc-examples.github.io/supporting-charts"
-            chartVersion: "0.1.7"
+            chartUrl: "https://na-launch-workshop.github.io/platform-supporting-charts"
+            chartVersion: "1.0.0"
           projectName: "${{ parameters.projectEntity | parseEntityRef | pick('name') }}"
           automated:
             prune: true

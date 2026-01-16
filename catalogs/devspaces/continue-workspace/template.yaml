@@ -19,7 +19,6 @@ metadata:
     - devspaces
     - automation
     - devops
-    - poc-examples
     - self-service
     - openshift-ai
     - code-generation
@@ -96,8 +95,8 @@ spec:
           syncWave: "1"
           chart:
             name: "devspace-workspace"
-            chartUrl: "https://poc-examples.github.io/supporting-charts"
-            chartVersion: "0.1.6"
+            chartUrl: "https://na-launch-workshop.github.io/platform-supporting-charts"
+            chartVersion: "1.0.0"
           projectName: "self-service"
           automated:
             prune: false

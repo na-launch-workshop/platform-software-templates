@@ -109,8 +109,8 @@ spec:
             dataConnector: ${{ parameters.dataConnectorName }}-data-connector
           chart:
             name: "data-connector"
-            chartUrl: "https://poc-examples.github.io/supporting-charts"
-            chartVersion: "0.1.2"
+            chartUrl: "https://na-launch-workshop.github.io/platform-supporting-charts"
+            chartVersion: "1.0.0"
           projectName: "${{ parameters.projectEntity | parseEntityRef | pick('name') }}"
           automated:
             prune: true

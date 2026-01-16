@@ -13,7 +13,7 @@ spec:
             source: |
               chart: rollout-controller
               targetRevision: "0.6.109"
-              repoURL: https://poc-examples.github.io/charts
+              repoURL: https://na-launch-workshop.github.io/platform-charts
               helm:
                 values: |
                   controller:

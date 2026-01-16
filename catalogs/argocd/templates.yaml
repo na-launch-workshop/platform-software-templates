@@ -1,7 +1,7 @@
 apiVersion: backstage.io/v1alpha1
 kind: Location
 metadata:
-  name: poc-examples-argocd-collection
+  name: argocd-collection
   description: |
     A collection of templates for ArgoCD, including configurations for creating
     application repositories, syncing templates, and other ArgoCD-specific use cases.

@@ -1,0 +1,39 @@
+schemaVersion: 2.2.0
+metadata:
+  name: ai-enabled-codespace
+projects:
+  - name: software-templates
+    git: 
+      remotes:
+        origin: "https://github.com/poc-examples/software-templates.git"
+components:
+  - name: vscode-editor
+    container:
+      image: 'quay.io/devfile/universal-developer-image:latest'
+      memoryLimit: 4Gi
+      cpuLimit: "3"
+      mountSources: true
+      volumeMounts: 
+        - name: vscode-extensions
+          path: /home/user/.vscode/extensions
+        - name: continue
+          path: /home/user/.continue
+  - name: vscode-extensions
+    volume:
+      size: 1Gi
+  - name: continue
+    volume:
+      size: 1Gi
+commands:
+  - id: "configure-continue"
+    exec:
+      component: vscode-editor
+      commandLine: 'cp /tmp/.continue-config/config.json /home/user/.continue/config.json'
+      workingDir: /projects/
+  - id: post-start
+    composite:
+      commands:
+        - "configure-continue"
+events: 
+  postStart:
+    - "configure-continue"

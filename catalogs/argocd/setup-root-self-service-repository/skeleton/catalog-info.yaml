@@ -1,0 +1,23 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: root-self-service-repository
+  title: Root Self-Service Repository
+  description: |
+    This repository serves as the root self-service repository for GitLab and ArgoCD integration.
+    It enables teams to attach their team-based repositories and synchronize applications with 
+    the root repository, ensuring a streamlined continuous deployment process via ArgoCD.
+  annotations:
+    argocd/app-selector: backstage-name=root-self-service
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - root-self-service-repo
+spec:
+  type: self-service
+  lifecycle: production
+  owner: ${{ values.owner }}
+  gitlab:
+    remoteUrl: ${{ values.gitlabRemoteUrl }}
+    owner: ${{ values.gitlabOwner }}
+    repository: ${{ values.gitlabRepository }}
+    branch: ${{ values.gitlabBranch }}

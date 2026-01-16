@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: "${{ values.repoName }}"
+  namespace: "openshift-gitops"
+  annotations:
+    {%- if values.syncWave %}
+    argocd.argoproj.io/sync-wave: "${{ values.syncWave }}"
+    {%- else %}
+    argocd.argoproj.io/sync-wave: "1"
+    {%- endif %}
+  {%- if values.labels.project %}
+  labels:
+    backstage-name: ${{ values.labels.project }}
+    {%- if values.labels.dataConnector.length %}
+    dataconnector: ${{ values.labels.dataConnector }}
+    {%- endif %}
+    {%- if values.labels.modelServer.length %}
+    modelserver: ${{ values.labels.modelServer }}
+    {%- endif %}
+    {%- if values.labels.model.length %}
+    model: ${{ values.labels.model }}
+    {%- endif %}
+  {%- endif %}
+spec:
+  destination:
+    namespace: "${{ values.namespace }}"
+    server: 'https://kubernetes.default.svc'
+  source:
+    chart: "${{ values.chart.name }}"
+    repoURL: "${{ values.chart.chartUrl }}"
+    targetRevision: "${{ values.chart.chartVersion }}"
+    {%- if values.valuesObject %}
+    helm:
+      valuesObject:
+${{ values.valuesObject | safe | indent(8, true) }}
+    {%- endif %}
+  project: "${{ values.projectName }}"
+  syncPolicy:
+    automated:
+      {%- if values.automated.prune %}
+      prune: ${{ values.automated.prune }}
+      {%- endif %}
+      {%- if values.automated.selfHeal %}
+      selfHeal: ${{ values.automated.selfHeal }}
+      {%- endif %}
+    managedNamespaceMetadata:
+      labels:
+        argocd.argoproj.io/managed-by: "openshift-gitops"
+${{ values.namespaceLabels | safe | indent(8, true) }}
+    syncOptions:
+      {%- if values.createNamespace %}
+      - CreateNamespace=${{ values.createNamespace }}
+      {%- endif %}
+      - Validate=false
+      - SkipDryRunOnMissingResource=true

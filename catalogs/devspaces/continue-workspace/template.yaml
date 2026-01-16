@@ -1,0 +1,144 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: continue-workspace
+  title: DevSpaces - Continue Configuration
+  description: |
+    Deploys a development workspace from Developer Hub with a self-hosted AI model on Red Hat OpenShift AI for code generation.
+    ```
+
+    Prerequisites: Run the following templates before using this:
+    * Create a GitLab Root Self-Service Repository
+    * Red Hat OpenShift AI - Data Science project
+    * Red Hat OpenShift AI - Data Connector
+    * Red Hat OpenShift AI - Data Science Sync Model
+    * Red Hat OpenShift AI - Single Model Server
+    ```
+  tags:
+    - gitlab
+    - devspaces
+    - automation
+    - devops
+    - poc-examples
+    - self-service
+    - openshift-ai
+    - code-generation
+
+spec:
+  owner: devops-team
+  system: self-service
+  type: service
+  parameters:
+
+    - title: Deploy a Continue Workspace
+      ui:group: workspace-config
+      required:
+        - rootSelfServiceRepo
+        - projectEntity
+        - openshiftUsername
+        - codingModel
+      properties:
+        rootSelfServiceRepo:
+          title: Root Self-Service Repository
+          type: string
+          description: The root self-service repository that contains artifact deployment configurations.
+          ui:field: EntityPicker
+          ui:options:
+            catalogFilter:
+              - kind: Component
+                spec.type: self-service
+        projectEntity:
+          title: Project Name
+          type: string
+          description: The project where the Continue Workspace is integrated.
+          ui:field: EntityPicker
+          ui:options:
+            catalogFilter:
+              - kind: Component
+                spec.type: data-science-project
+        codingModel:
+          title: Coding Model
+          type: string
+          description: The model to use in vscode continue.
+          ui:field: EntityPicker
+          ui:options:
+            catalogFilter:
+              - kind: Component
+                spec.type: model-server
+        openshiftUsername:
+          title: OpenShift Username 
+          type: string 
+          description: The openshift username used to login to devspaces 
+          pattern: "^[a-z][a-z0-9-]+$"
+          minLength: 3
+          maxLength: 30
+
+  steps:
+
+    - action: catalog:fetch
+      id: fetchSelfServiceEntity
+      name: Fetch Root Self-Service Repo Entity
+      input:
+        entityRef: ${{ parameters.rootSelfServiceRepo }}
+
+    ###########################
+    ## Template the Application
+    ###########################
+    - id: applicationTemplate
+      name: Template Helm ApplicationSet
+      action: fetch:template
+      input:
+        url: "../../../skeletons/applications/appset/"
+        targetPath: "projects/${{ parameters.projectEntity | parseEntityRef | pick('name') }}/"
+        values:
+          repoName: "${{ parameters.projectEntity | parseEntityRef | pick('name') }}-workspace"
+          namespace: "${{ parameters.openshiftUsername }}-devspaces"
+          syncWave: "1"
+          chart:
+            name: "devspace-workspace"
+            chartUrl: "https://poc-examples.github.io/supporting-charts"
+            chartVersion: "0.1.6"
+          projectName: "self-service"
+          automated:
+            prune: false
+            selfHeal: true
+          createNamespace: "true"
+          valuesObject: |
+            config:
+              name: continue-cm
+              model:
+                name: ${{ parameters.codingModel | parseEntityRef | pick('name') }}
+                project: ${{ parameters.projectEntity | parseEntityRef | pick('name') }}
+                domain: {{ .metadata.labels.domain }}
+
+    ##############
+    ## Rename File
+    ##############
+    - id: changeTemplateName
+      name: Change Template Name
+      action: fs:rename
+      input:
+        files:
+          - from: "projects/${{ parameters.projectEntity | parseEntityRef | pick('name') }}/appset.yaml"
+            to: "projects/${{ parameters.projectEntity | parseEntityRef | pick('name') }}/${{ parameters.projectEntity | parseEntityRef | pick('name') }}-workspace.yaml"
+
+    ##########################
+    ## Push Repository Changes
+    ##########################
+    - id: publishManifests
+      name: Publishing to the Source Code Repository
+      action: gitlab:repo:push
+      input:
+        description: |
+          Publishing Continue Workspace to the source code repository
+        repoUrl: gitlab.com?owner=${{ steps['fetchSelfServiceEntity'].output.entity.spec.gitlab.owner }}&repo=${{ steps['fetchSelfServiceEntity'].output.entity.spec.gitlab.repository }}
+        sourcePath: "./projects/${{ parameters.projectEntity | parseEntityRef | pick('name') }}"
+        targetPath: "./projects/${{ parameters.projectEntity | parseEntityRef | pick('name') }}"
+        branchName: main
+        commitAction: create
+        commitMessage: "Created Continue Workspace in project ${{ parameters.projectEntity | parseEntityRef | pick('name') }}"
+
+  output:
+    links:
+      - title: GitLab Repository
+        url: ${{ steps['fetchSelfServiceEntity'].output.entity.spec.gitlab.remoteUrl }}

@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: "sync-root-projects"
+  namespace: "openshift-gitops"
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  labels:
+    backstage-name: root-self-service
+spec:
+  destination:
+    namespace: "openshift-gitops"
+    server: 'https://kubernetes.default.svc'
+  source:
+    repoURL: "${{ values.gitlabRemoteUrl }}.git"
+    targetRevision: "${{ values.gitlabBranch }}"
+    path: "${{ values.path }}"
+    directory:
+      recurse: true
+  project: "${{ values.projectName }}"
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    managedNamespaceMetadata:
+      labels:
+        argocd.argoproj.io/managed-by: "openshift-gitops"
+    syncOptions:
+      - CreateNamespace=false
+      - Validate=false
+      - SkipDryRunOnMissingResource=true

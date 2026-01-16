@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: services-applicationset
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: ${{ values.gitlabRemoteUrl }}.git
+        revision: HEAD
+        directories:
+          - path: services/*/*/overlays/test
+        values:
+          service: "{{index .path.segments 1}}-{{index .path.segments 2}}"
+  template:
+    metadata:
+      name: "{{.values.service}}-service"
+    spec:
+      project: default
+      source:
+        repoURL: ${{ values.gitlabRemoteUrl }}.git
+        targetRevision: HEAD
+        path: '{{.path.path}}'
+        kustomize:
+          commonLabels:
+            env: '{{.path.basename}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{.values.service}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        managedNamespaceMetadata:
+          labels:
+            argocd.argoproj.io/managed-by: "openshift-gitops"
+        syncOptions:
+          - CreateNamespace=true
+          - Validate=false

@@ -1,0 +1,199 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: rhoai-data-science-sync-model
+  title: Red Hat OpenShift AI - Data Science Sync Model
+  description: |
+    This template automates the synchronization of HuggingFace models to S3 buckets.
+    ```
+
+    Prerequisites: Run the following templates before using this:
+    * Create a GitLab Root Self-Service Repository
+    * Red Hat OpenShift AI - Data Science project
+    * Red Hat OpenShift AI - Data Connector
+    ```
+  tags:
+    - openshift-ai
+    - data-science-project
+    - automation
+    - data-science
+    - data-pipelines
+    - gitlab
+    - argocd
+
+spec:
+  owner: data-science
+  system: self-service
+  type: service
+  parameters:
+    - title: DataScience Sync Model Settings
+      ui:group: data-science-sync-model
+      required:
+        - rootSelfServiceRepo
+        - projectEntity
+        - dataConnectorEntity
+        - modelName
+        - modelRepository
+        - modelRevision
+      properties:
+        rootSelfServiceRepo:
+          title: Root Self-Service Repository
+          type: string
+          description: The root self-service repository that contains artifact deployment configurations.
+          ui:field: EntityPicker
+          ui:options:
+            catalogFilter:
+              - kind: Component
+                spec.type: self-service
+        projectEntity:
+          title: Project Name
+          type: string
+          description: The project where the data connector is integrated.
+          ui:field: EntityPicker
+          ui:options:
+            catalogFilter:
+              - kind: Component
+                spec.type: data-science-project
+        dataConnectorEntity:
+          title: Data Connector Name
+          type: string
+          description: The name of the data connector.
+          ui:field: EntityPicker
+          ui:options:
+            catalogFilter:
+              - kind: Component
+                spec.type: data-connector
+        modelName:
+          title: Model Name
+          description: Model name
+          type: string
+          pattern: "^[a-z][a-z0-9-]+$"
+          minLength: 3
+          maxLength: 30
+        modelRepository:
+          title: Model Repository
+          description: i.e. Qwen/Qwen2.5-Coder-7B
+          type: string
+          pattern: "^[a-zA-Z][a-zA-Z0-9-/.]+$"
+          minLength: 3
+          maxLength: 60
+        modelRevision:
+          title: Model Revision
+          description: i.e. 7b0cc3380fe815e6f08fe2f80c03e05a8b1883d8
+          type: string
+          pattern: "^[a-z0-9]+$"
+          minLength: 3
+          maxLength: 60
+
+  steps:
+
+    #################
+    ## Fetch Entities
+    #################
+
+    - action: catalog:fetch
+      id: fetchSelfServiceEntity
+      name: Fetch Root Self-Service Repo Entity
+      input:
+        entityRef: ${{ parameters.rootSelfServiceRepo }}
+
+    ###########################
+    ## Template the Application
+    ###########################
+
+
+    - id: applicationTemplate
+      name: Template Helm Application
+      action: fetch:template
+      input:
+        url: "../../../../skeletons/applications/helm/"
+        targetPath: "projects/${{ parameters.projectEntity | parseEntityRef | pick('name') }}/"
+        values:
+          repoName: "${{ parameters.modelName }}-model"
+          namespace: "${{ parameters.projectEntity | parseEntityRef | pick('name') }}"
+          labels:
+            project: ${{ parameters.projectEntity | parseEntityRef | pick('name') }}
+            model: ${{ parameters.modelName }}-model
+          chart:
+            name: "rhoai-sync-model"
+            chartUrl: "https://poc-examples.github.io/supporting-charts"
+            chartVersion: "0.1.18"
+          projectName: "${{ parameters.projectEntity | parseEntityRef | pick('name') }}"
+          automated:
+            prune: true
+            selfHeal: true
+          createNamespace: "false"
+          valuesObject: |
+            name: ${{ parameters.modelName }}-model
+            model:
+              repository: ${{ parameters.modelRepository }}
+              revision: ${{ parameters.modelRevision }}
+            dataConnector: aws-connection-${{ parameters.dataConnectorEntity | parseEntityRef | pick('name') }}
+
+    - id: templateSyncModelEntity
+      name: Template Sync Model Entity
+      action: fetch:template
+      input:
+        url: "../../../../skeletons/backstage/model"
+        targetPath: "backstage/${{ parameters.projectEntity | parseEntityRef | pick('name') }}/"
+        values:
+          projectName: ${{ parameters.projectEntity | parseEntityRef | pick('name') }}
+          name: ${{ parameters.modelName }}-model
+          revision: ${{ parameters.modelRevision }}
+          repository: ${{ parameters.modelRepository }}
+          owner: |
+            ${{ "user:" + user.entity.metadata.namespace + "/" + user.entity.metadata.name if user.entity.metadata.namespace else "default/guest" }}
+          rootSelfServiceRepo: ${{ parameters.rootSelfServiceRepo }}
+          projectEntity: ${{ parameters.projectEntity }}
+          dataConnectorEntity: ${{ parameters.dataConnectorEntity }}
+
+    ##############
+    ## Rename File
+    ##############
+    - id: changeTemplateName
+      name: Change Template Name
+      action: fs:rename
+      input:
+        files:
+          - from: "projects/${{ parameters.projectEntity | parseEntityRef | pick('name') }}/application.yaml"
+            to: "projects/${{ parameters.projectEntity | parseEntityRef | pick('name') }}/${{ parameters.modelName }}-model.yaml"
+
+    - id: changeBackstageTemplateName
+      name: Change Backstage Template Name
+      action: fs:rename
+      input:
+        files:
+          - from: "backstage/${{ parameters.projectEntity | parseEntityRef | pick('name') }}/model.yaml"
+            to: "backstage/${{ parameters.projectEntity | parseEntityRef | pick('name') }}/${{ parameters.modelName }}-model.yaml"
+
+    ##########################
+    ## Push Repository Changes
+    ##########################
+    - id: publishManifests
+      name: Publishing to the Source Code Repository
+      action: gitlab:repo:push
+      input:
+        description: |
+          Publishing sync model to the source code repository
+        repoUrl: gitlab.com?owner=${{ steps['fetchSelfServiceEntity'].output.entity.spec.gitlab.owner }}&repo=${{ steps['fetchSelfServiceEntity'].output.entity.spec.gitlab.repository }}
+        branchName: ${{ steps['fetchSelfServiceEntity'].output.entity.spec.gitlab.branch }}
+        commitAction: create
+        commitMessage: "Created ${{ parameters.modelName }}-model Model"
+
+    ########################
+    ## Register Catalog Info
+    ########################
+    - id: registerCatalog
+      name: "Register Catalog Info"
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['fetchSelfServiceEntity'].output.entity.spec.gitlab.remoteUrl }}
+        catalogInfoPath: /-/blob/${{ steps['fetchSelfServiceEntity'].output.entity.spec.gitlab.branch }}/backstage/${{ parameters.projectEntity | parseEntityRef | pick('name') }}/${{ parameters.modelName}}-model.yaml
+
+  output:
+    links:
+      - title: GitLab Repository
+        url: ${{ steps['fetchSelfServiceEntity'].output.entity.spec.gitlab.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['registerCatalog'].output.entityRef }}

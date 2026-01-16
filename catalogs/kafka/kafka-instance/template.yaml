@@ -1,0 +1,144 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: kafka-instance
+  title: Kafka Streaming - Kafka Instance
+  description: |
+    Deploys a kafka instance from Developer Hub creating (3) Kafka Instance & (3) Zookeeper Instances on Red Hat OpenShift in a slected namespace.
+  tags:
+    - gitlab
+    - kafka
+    - zookeeper
+    - automation
+    - devops
+    - poc-examples
+    - self-service
+spec:
+  owner: developers
+  system: self-service
+  type: service
+  parameters:
+
+    - title: Deploy a Streams for Kafka - Kafka Instance
+      ui:group: instance-config
+      required:
+        - workshopRepo
+        - name
+      properties:
+        workshopRepo:
+          title: Workshop Repository
+          type: string
+          description: The workshop repository that contains artifact deployment configurations.
+          ui:field: EntityPicker
+          ui:options:
+            catalogFilter:
+              - kind: Component
+                spec.type: workshop-repository
+        name:
+          title: Kafka Instance Name
+          type: string
+          description: The name for the kafka deployment.
+          pattern: "^[a-zA-Z][a-z0-9-]+[A-Za-z0-9]$"
+          minLength: 3
+          maxLength: 30
+
+  steps:
+
+    #####################################################
+    ## Fetches the Repo where we will add the helm charts
+    #####################################################
+    - action: catalog:fetch
+      id: fetchWorkshopEntity
+      name: Fetch Workshop Repo Entity
+      input:
+        entityRef: ${{ parameters.workshopRepo }}
+
+    ###################################
+    ## Fetch Available ArgoCD Instances
+    ###################################
+    - action: catalog:fetch
+      id: fetchArgoCDInstances
+      name: Fetch ArgoCD Instances
+      input:
+        entityRef: resource:default/argocd-instances
+
+    ##########################
+    ## Template the Overlays
+    ##########################
+    - id: generateOverlays
+      name: Generate Kustomize Overlays
+      each: ${{ steps['fetchArgoCDInstances'].output.entity.spec.instances }}
+      action: fetch:template
+      copyWithoutTemplating:
+        - kustomization.yaml
+      input:
+        url: "./skeleton/overlays/${{ each.value.name }}"
+        targetPath: "./services/${{ user.entity.metadata.name }}/kafka/overlays/${{ each.value.name }}"
+
+    ###########################
+    ## Template the Application
+    ###########################
+    - id: applicationTemplate
+      name: Template Kustomize Base
+      action: fetch:template
+      input:
+        url: "./skeleton/base/"
+        targetPath: "./services/${{ user.entity.metadata.name }}/kafka/base"
+        values:
+          name: ${{ user.entity.metadata.name }}
+          capacityEnabled: ${{ steps['fetchWorkshopEntity'].output.entity.spec.settings.amq.capacityEnabled }}
+
+    ############################
+    ## Template the Catalog Info
+    ############################
+    - id: templateKafkaInstanceEntity
+      name: Template Kafka Component
+      action: fetch:template
+      input:
+        url: "../../../skeletons/backstage/kafka-instance"
+        targetPath: "backstage/${{ user.entity.metadata.name }}/kafka"
+        values:
+          name: ${{ parameters.name }}-kafka
+          brokerService: ${{ parameters.name }}-kafka-brokers.${{ user.entity.metadata.name }}-kafka.svc.cluster.local
+          bootstrapService: ${{ parameters.name }}-kafka-bootstrap.${{ user.entity.metadata.name }}-kafka.svc.cluster.local
+          owner: |
+            ${{ "user:" + user.entity.metadata.namespace + "/" + user.entity.metadata.name if user.entity.metadata.namespace else "default/guest" }}
+          rootSelfServiceRepo: ${{ parameters.workshopRepo }}
+          devspaces:
+            domain: ${{ steps['fetchArgoCDInstances'].output.entity.spec.devspaces.domain }}
+          gitlabRemoteUrl: ${{ steps['fetchWorkshopEntity'].output.entity.spec.gitlab.remoteUrl }}
+
+    ##########################
+    ## Push Repository Changes
+    ##########################
+    - id: publishManifests
+      name: Publishing to Workshop Repository
+      action: gitlab:repo:push
+      input:
+        description: |
+          Publishing Kafka Instance to workshop repository
+        repoUrl: gitlab.com?owner=${{ steps['fetchWorkshopEntity'].output.entity.spec.gitlab.owner }}&repo=${{ steps['fetchWorkshopEntity'].output.entity.spec.gitlab.repository }}
+        branchName: main
+        commitAction: create
+        commitMessage: "Created Kafka Instance in folder services/${{ user.entity.metadata.name }}/kafka"
+
+    ########################
+    ## Register Catalog Info
+    ########################
+    - id: registerCatalog
+      name: "Register Catalog Info"
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['fetchWorkshopEntity'].output.entity.spec.gitlab.remoteUrl }}
+        catalogInfoPath: /-/blob/${{ steps['fetchWorkshopEntity'].output.entity.spec.gitlab.branch }}/backstage/${{ user.entity.metadata.name }}/kafka/kafka-instance.yaml
+
+  output:
+    links:
+      - title: GitLab Repository
+        url: ${{ steps['fetchWorkshopEntity'].output.entity.spec.gitlab.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['registerCatalog'].output.entityRef }}
+    text:
+      - title: "Namespace"
+        content: "${{ user.entity.metadata.name }}-kafka-instance"

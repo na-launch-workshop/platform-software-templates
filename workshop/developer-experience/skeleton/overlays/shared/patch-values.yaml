@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: workshop-orchestrator
+spec:
+  generators:
+    - list:
+        elements:
+          - application: workshop-rollout-controller
+            namespace: openshift-gitops
+            project: controllers
+            wave: "-2"
+            source: |
+              chart: rollout-controller
+              targetRevision: "0.6.109"
+              repoURL: https://poc-examples.github.io/charts
+              helm:
+                values: |
+                  controller:
+                    name: workshop

@@ -1,0 +1,240 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: developer-experience-workshop
+  title: Workshop - Developer Experience
+  description: |
+    One-Time Use: This template automates the creation of a GitLab root repository from a predefined 
+    skeleton and configures an ArgoCD application to automatically synchronize changes from the 
+    repository. The root repository is intended to serve as the central point for managing applications. 
+    Any team-based self-service repositories will attach their applications to this root repository 
+    and will be synced from it, ensuring a cohesive and streamlined continuous deployment process. 
+    This template is intended for single use to prevent conflicts with the root structure.
+  tags:
+    - gitlab
+    - argocd
+    - automation
+    - devops
+    - poc-examples
+    - self-service
+    - one-time-use
+
+spec:
+  owner: cluster-admins
+  system: self-service
+  type: workshop
+  parameters:
+    - title: Workshop Configuration
+      properties:
+        general:
+          type: object
+          title: General Settings
+          properties:
+            gitlabOwner:
+              title: GitLab Owner
+              type: string
+              default: self-provisioned
+              description: GitLab group or username that owns the repository
+              ui:widget: hidden
+            gitlabRepository:
+              title: GitLab Repository Name
+              type: string
+              default: workshop-repository
+              description: Repository name used to initialize workshop
+
+        devspaces:
+          type: object
+          title: DevSpaces Dedicated Capacity
+          properties:
+            enableDevspaces:
+              title: Enable Dedicated Capacity?
+              type: boolean
+              default: false
+              description: Toggle to provision dedicated capacity for devspaces.
+          dependencies:
+            enableDevspaces:
+              oneOf:
+                - properties:
+                    enableDevspaces:
+                      const: false
+                - properties:
+                    enableDevspaces:
+                      const: true
+                    devspacesMachineCount:
+                      title: Machine Count
+                      type: integer
+                      minimum: 1
+                      default: 1
+                      description: Number of nodes dedicated to DevSpaces
+                    devspacesMachineType:
+                      title: Machine SKU
+                      type: string
+                      default: Standard_D8s_v3
+                      description: Virtual Machine SKU used to provision DevSpaces nodes
+
+        kafka:
+          type: object
+          title: Kafka Dedicated Capacity
+          properties:
+            enableKafka:
+              title: Enable Dedicated Capacity?
+              type: boolean
+              default: false
+              description: Toggle to provision dedicated capacity for kafka.
+          dependencies:
+            enableKafka:
+              oneOf:
+                - properties:
+                    enableKafka:
+                      const: false
+                - properties:
+                    enableKafka:
+                      const: true
+                    kafkaMachineCount:
+                      title: Machine Count
+                      type: integer
+                      minimum: 1
+                      default: 1
+                      description: Number of nodes dedicated to Kafka
+                    kafkaMachineType:
+                      title: Machine SKU
+                      type: string
+                      default: Standard_D8s_v3
+                      description: Virtual Machine SKU used to provision Kafka nodes
+
+  steps:
+
+    ###################################
+    ## Fetch Available ArgoCD Instances
+    ###################################
+    - action: catalog:fetch
+      id: fetchArgoCDInstances
+      name: Fetch ArgoCD Instances
+      input:
+        entityRef: resource:default/argocd-instances
+
+    #################################
+    ## Create Empty Repository
+    #################################
+    - id: publishEmptyRepo
+      name: "Create Empty Repository"
+      action: publish:gitlab
+      input:
+        description: |
+          Self-Service Repository
+        repoUrl: gitlab.com?owner=${{ parameters.general.gitlabOwner }}&repo=${{ parameters.general.gitlabRepository }}
+        defaultBranch: main
+        settings:
+          visibility: "internal"
+        branches:
+          - name: main
+            protect: true
+
+    ##########################
+    ## Template the Repository
+    ##########################
+    - id: pullRepositorySkeleton
+      name: "Pull Self-Service Skeleton"
+      action: fetch:template
+      input:
+        url: './skeleton/repository'
+        copyWithoutTemplating:
+          - README.md
+          - LICENSE
+          - backstage
+          - applications
+        values:
+          path: "projects"
+          projectName: "default"
+          owner: "group:default/cluster-admins"
+          gitlabRemoteUrl: ${{ steps['publishEmptyRepo'].output.remoteUrl }}
+          gitlabOwner: ${{ parameters.general.gitlabOwner }}
+          gitlabRepository: ${{ parameters.general.gitlabRepository }}
+          gitlabBranch: main
+          devspaces:
+            domain: ${{ steps['fetchArgoCDInstances'].output.entity.spec.devspaces.domain }}
+          cluster:
+            domains:
+              shared: ${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}
+          settings:
+            amq:
+              capacityEnabled: ${{ parameters.kafka.enableKafka }}
+            devspaces:
+              capacityEnabled: ${{ parameters.devspaces.enableDevspaces }}
+
+    ##########################
+    ## Template the Overlays
+    ##########################
+    - id: generateOverlays
+      name: Generate Overlays
+      each: ${{ steps['fetchArgoCDInstances'].output.entity.spec.instances }}
+      action: fetch:template
+      input:
+        url: "./skeleton/overlays/${{ each.value.name }}"
+        targetPath: "./_init_/workshop/overlays/${{ each.value.name }}"
+        copyWithoutTemplating:
+          - kustomization.yaml
+        values:
+          gitlabRemoteUrl: ${{ steps['publishEmptyRepo'].output.remoteUrl }}
+          gitlabBranch: main
+          cluster:
+            domains:
+              local: "apps.${{ each.value.domain }}"
+              shared: ${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}
+            type: "${{ each.value.type }}"
+          gitlabOwner: ${{ parameters.general.gitlabOwner }}
+          devspaces:
+            sku: ${{ parameters.devspaces.devspacesMachineType }}
+            enableCapacity: ${{ parameters.devspaces.enableDevspaces }}
+            count: ${{ parameters.devspaces.devspacesMachineCount }}
+          amq:
+            sku: ${{ parameters.kafka.kafkaMachineType }}
+            enableCapacity: ${{ parameters.kafka.enableKafka }}
+            count: ${{ parameters.kafka.kafkaMachineCount }}
+          gitlabRepository: ${{ parameters.general.gitlabRepository }}
+
+    #################################
+    ## Create Self-Service Repository
+    #################################
+    - id: publish
+      name: "Create Self-Service Repository"
+      action: gitlab:repo:push
+      input:
+        description: |
+          Self-Service Repository
+        repoUrl: gitlab.com?owner=${{ parameters.general.gitlabOwner }}&repo=${{ parameters.general.gitlabRepository }}
+        branchName: main
+        commitAction: create
+        commitMessage: "Publish repository skeleton"
+
+    #################################
+    ## ArgoCD Resources Configuration
+    #################################
+    - id: createArgocdResources
+      name: "Create ArgoCD Resources"
+      action: argocd:create-resources
+      each: ${{ steps['fetchArgoCDInstances'].output.entity.spec.instances }}
+      input:
+        appName: "workshop-orchestrator"
+        argoInstance: ${{ each.value.name }}
+        namespace: "openshift-gitops"
+        repoUrl: "${{ steps['publishEmptyRepo'].output.remoteUrl }}.git"
+        path: "_init_/workshop/overlays/${{ each.value.name }}"
+
+    ########################
+    ## Register Catalog Info
+    ########################
+    - id: registerCatalog
+      name: "Register Catalog Info"
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps["publishEmptyRepo"].output.repoContentsUrl }}
+        catalogInfoPath: /catalog-info.yaml
+
+  output:
+    links:
+      - title: GitLab Repository
+        url: ${{ steps['publishEmptyRepo'].output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: component:default/root-self-service-repository

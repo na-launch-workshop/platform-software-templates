@@ -1,0 +1,191 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: rhoai-data-connector
+  title: Red Hat OpenShift AI - Data Connector
+  description: |
+    This template automates the setup of a Red Hat OpenShift AI Data Connector. It provides a predefined 
+    structure for integrating data sources with OpenShift AI, enabling seamless data flow between different 
+    applications and data repositories. The template helps teams easily configure data connections, 
+    ensuring that data pipelines are consistently synced with AI workloads and ArgoCD applications 
+    for continuous integration and deployment.
+    ```
+
+    Prerequisites: Run the following templates before using this:
+    * Create a GitLab Root Self-Service Repository
+    * Red Hat OpenShift AI - Data Science Project
+    ```
+  tags:
+    - openshift-ai
+    - data-connector
+    - automation
+    - data-science
+    - data-pipelines
+    - gitlab
+    - argocd
+
+spec:
+  owner: data-science
+  system: self-service
+  type: service
+  parameters:
+
+    - title: Data Connector Settings
+      ui:group: data-connector
+      required:
+        - rootSelfServiceRepo
+        - projectEntity
+        - dataConnectorName
+        - bucketName
+        - defaultRegion
+      properties:
+        rootSelfServiceRepo:
+          title: Root Self-Service Repository
+          type: string
+          description: The root self-service repository that contains artifact deployment configurations.
+          ui:field: EntityPicker
+          ui:options:
+            catalogFilter:
+              - kind: Component
+                spec.type: self-service
+        projectEntity:
+          title: Project Name
+          type: string
+          description: The project where the data connector is integrated.
+          ui:field: EntityPicker
+          ui:options:
+            catalogFilter:
+              - kind: Component
+                spec.type: data-science-project
+        dataConnectorName:
+          title: Data Connector Name
+          description: The name of the data connector.
+          type: string
+          pattern: "^[a-z][a-z0-9-]+$"
+          minLength: 3
+          maxLength: 30
+        bucketName:
+          title: Bucket Name
+          description: The name of the bucket.
+          type: string
+          pattern: "^[a-z][a-z0-9-]+$"
+          minLength: 3
+          maxLength: 30
+        defaultRegion:
+          title: Bucket Region
+          description: The buckets aws region.
+          default: "us-east-1"
+          type: string
+          pattern: "^[a-z][a-z0-9-]+$"
+          minLength: 3
+          maxLength: 15
+
+  steps:
+
+    #################
+    ## Fetch Entities
+    #################
+
+    - action: catalog:fetch
+      id: fetchSelfServiceEntity
+      name: Fetch Root Self-Service Repo Entity
+      input:
+        entityRef: ${{ parameters.rootSelfServiceRepo }}
+
+    ###########################
+    ## Template the Application
+    ###########################
+    - id: applicationTemplate
+      name: Template Helm Application
+      action: fetch:template
+      input:
+        url: "../../../../skeletons/applications/helm/"
+        targetPath: "projects/${{ parameters.projectEntity | parseEntityRef | pick('name') }}/"
+        values:
+          repoName: "${{ parameters.projectEntity | parseEntityRef | pick('name') }}-${{ parameters.dataConnectorName }}-data-connector"
+          namespace: "${{ parameters.projectEntity | parseEntityRef | pick('name') }}"
+          labels:
+            project: ${{ parameters.projectEntity | parseEntityRef | pick('name') }}
+            dataConnector: ${{ parameters.dataConnectorName }}-data-connector
+          chart:
+            name: "data-connector"
+            chartUrl: "https://poc-examples.github.io/supporting-charts"
+            chartVersion: "0.1.2"
+          projectName: "${{ parameters.projectEntity | parseEntityRef | pick('name') }}"
+          automated:
+            prune: true
+            selfHeal: true
+          createNamespace: "true"
+          valuesObject: |
+            clusterSecretStoreName: "kubernetes-secrets-store"
+            dataConnection:
+              name: ${{ parameters.dataConnectorName }}-data-connector
+              config:
+                defaultRegion: ${{ parameters.defaultRegion }}
+                bucketName: ${{ parameters.bucketName }}
+              secretRef: aws-credentials
+
+    - id: templateDataConnectorEntity
+      name: Template Data Connector Entity
+      action: fetch:template
+      input:
+        url: "../../../../skeletons/backstage/data-connector"
+        targetPath: "backstage/${{ parameters.projectEntity | parseEntityRef | pick('name') }}/"
+        values:
+          projectName: ${{ parameters.projectEntity | parseEntityRef | pick('name') }}
+          name: ${{ parameters.dataConnectorName }}-data-connector
+          owner: |
+            ${{ "user:" + user.entity.metadata.namespace + "/" + user.entity.metadata.name if user.entity.metadata.namespace else "default/guest" }}
+          rootSelfServiceRepo: ${{ parameters.rootSelfServiceRepo }}
+          projectEntity: ${{ parameters.projectEntity }}
+
+    ##############
+    ## Rename File
+    ##############
+    - id: changeProjectTemplateName
+      name: Change ProjectTemplate Name
+      action: fs:rename
+      input:
+        files:
+          - from: "projects/${{ parameters.projectEntity | parseEntityRef | pick('name') }}/application.yaml"
+            to: "projects/${{ parameters.projectEntity | parseEntityRef | pick('name') }}/${{ parameters.dataConnectorName }}-data-connector.yaml"
+
+    - id: changeBackstageTemplateName
+      name: Change Backstage Template Name
+      action: fs:rename
+      input:
+        files:
+          - from: "backstage/${{ parameters.projectEntity | parseEntityRef | pick('name') }}/data-connector.yaml"
+            to: "backstage/${{ parameters.projectEntity | parseEntityRef | pick('name') }}/${{ parameters.dataConnectorName }}-data-connector.yaml"
+
+    ##########################
+    ## Push Repository Changes
+    ##########################
+    - id: publishManifests
+      name: Publishing to the Source Code Repository
+      action: gitlab:repo:push
+      input:
+        description: |
+          placeholder
+        repoUrl: gitlab.com?owner=${{ steps['fetchSelfServiceEntity'].output.entity.spec.gitlab.owner }}&repo=${{ steps['fetchSelfServiceEntity'].output.entity.spec.gitlab.repository }}
+        branchName: ${{ steps['fetchSelfServiceEntity'].output.entity.spec.gitlab.branch }}
+        commitAction: create
+        commitMessage: "Created ${{ parameters.dataConnectorName }}-data-connector Data Connector"
+
+    ########################
+    ## Register Catalog Info
+    ########################
+    - id: registerCatalog
+      name: "Register Catalog Info"
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['fetchSelfServiceEntity'].output.entity.spec.gitlab.remoteUrl }}
+        catalogInfoPath: /-/blob/${{ steps['fetchSelfServiceEntity'].output.entity.spec.gitlab.branch }}/backstage/${{ parameters.projectEntity | parseEntityRef | pick('name') }}/${{ parameters.dataConnectorName}}-data-connector.yaml
+
+  output:
+    links:
+      - title: GitLab Repository
+        url: ${{ steps['fetchSelfServiceEntity'].output.entity.spec.gitlab.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['registerCatalog'].output.entityRef }}

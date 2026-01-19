@@ -119,8 +119,6 @@ spec:
       name: "Create Empty Repository"
       action: publish:gitlab
       input:
-        description: |
-          Self-Service Repository
         repoUrl: gitlab.com?owner=${{ parameters.general.gitlabOwner }}&repo=${{ parameters.general.gitlabRepository }}
         defaultBranch: main
         settings:
@@ -199,8 +197,6 @@ spec:
       name: "Create Self-Service Repository"
       action: gitlab:repo:push
       input:
-        description: |
-          Self-Service Repository
         repoUrl: gitlab.com?owner=${{ parameters.general.gitlabOwner }}&repo=${{ parameters.general.gitlabRepository }}
         branchName: main
         commitAction: create

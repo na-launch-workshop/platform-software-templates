@@ -1,0 +1,156 @@
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: workshop
+  description: Red Hat Launch Workshop
+  annotations:
+    backstage.io/source-location: url:https://github.com/na-launch-workshop
+    backstage.io/techdocs-ref: url:https://github.com/na-launch-workshop
+  tags:
+    - workshop
+spec:
+  owner: group:default/workshop-admins
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: workshop-ansible-collections
+  description: Workshop - Ansible Collections
+  annotations:
+    backstage.io/source-location: url:https://github.com/na-launch-workshop/platform-ansible-collections/tree/main
+    backstage.io/techdocs-ref: url:https://github.com/na-launch-workshop/platform-ansible-collections/tree/main
+  tags:
+    - workshop
+    - ansible
+spec:
+  type: service
+  lifecycle: production
+  owner: group:default/workshop-admins
+  system: workshop
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: workshop-charts
+  description: Workshop - Charts
+  annotations:
+    backstage.io/source-location: url:https://github.com/na-launch-workshop/platform-charts/tree/main
+    backstage.io/techdocs-ref: url:https://github.com/na-launch-workshop/platform-charts/tree/main
+  tags:
+    - workshop
+    - helm
+spec:
+  type: service
+  lifecycle: production
+  owner: group:default/workshop-admins
+  system: workshop
+  dependsOn:
+    - component:default/workshop-supporting-charts
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: workshop-cluster-bootstrapper
+  description: Workshop - Cluster Bootstrapper
+  annotations:
+    backstage.io/source-location: url:https://github.com/na-launch-workshop/platform-cluster-bootstrapper/tree/main
+    backstage.io/techdocs-ref: url:https://github.com/na-launch-workshop/platform-cluster-bootstrapper/tree/main
+  tags:
+    - workshop
+    - terraform
+spec:
+  type: service
+  lifecycle: production
+  owner: group:default/workshop-admins
+  system: workshop
+  dependsOn:
+    - component:default/workshop-charts
+    - component:default/workshop-supporting-charts
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: workshop-container-library
+  description: Workshop - Container Library
+  annotations:
+    backstage.io/source-location: url:https://github.com/na-launch-workshop/platform-container-library/tree/main
+    backstage.io/techdocs-ref: url:https://github.com/na-launch-workshop/platform-container-library/tree/main
+  tags:
+    - workshop
+    - containerfile
+spec:
+  type: service
+  lifecycle: production
+  owner: group:default/workshop-admins
+  system: workshop
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: workshop-software-templates
+  description: Workshop - Software Templates
+  annotations:
+    backstage.io/source-location: url:https://github.com/na-launch-workshop/platform-software-templates/tree/main
+    backstage.io/techdocs-ref: url:https://github.com/na-launch-workshop/platform-software-templates/tree/main
+  tags:
+    - workshop
+    - templates
+spec:
+  type: service
+  lifecycle: production
+  owner: group:default/workshop-admins
+  system: workshop
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: workshop-supporting-charts
+  description: Workshop - Supporting Charts
+  annotations:
+    backstage.io/source-location: url:https://github.com/na-launch-workshop/platform-supporting-charts/tree/main
+    backstage.io/techdocs-ref: url:https://github.com/na-launch-workshop/platform-supporting-charts/tree/main
+  tags:
+    - workshop
+    - helm
+spec:
+  type: service
+  lifecycle: production
+  owner: group:default/workshop-admins
+  system: workshop
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: workshop-terraform-clusters
+  description: Workshop - Terraform Clusters
+  annotations:
+    backstage.io/source-location: url:https://github.com/na-launch-workshop/platform-terraform-clusters/tree/main
+    backstage.io/techdocs-ref: url:https://github.com/na-launch-workshop/platform-terraform-clusters/tree/main
+  tags:
+    - workshop
+    - terraform
+spec:
+  type: service
+  lifecycle: production
+  owner: group:default/workshop-admins
+  system: workshop
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: workshop-setup
+  description: Workshop - Setup
+  annotations:
+    backstage.io/source-location: url:https://github.com/na-launch-workshop/platform-workshop-setup/tree/main
+    backstage.io/techdocs-ref: url:https://github.com/na-launch-workshop/platform-workshop-setup/tree/main
+  tags:
+    - workshop
+    - docs
+spec:
+  type: docs
+  lifecycle: production
+  owner: group:default/workshop-admins
+  system: workshop
+  dependsOn:
+    - component:default/workshop-ansible-collections
+---

@@ -8,3 +8,5 @@ spec:
   type: url
   targets:
     - ./developer-experience/template.yaml
+    - ./platform/groups.yaml
+    - ./platform/workshop-collection.yaml

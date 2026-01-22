@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: workshop-admins
+  description: Red Hat Workshop Admins
+spec:
+  type: team
+  profile:
+    displayName: Red Hat Workshop Admins
+    picture: https://github.com/na-launch-workshop/platform-software-templates/tree/main/workshop/platform/red-hat-launch-team.png
+  children: []

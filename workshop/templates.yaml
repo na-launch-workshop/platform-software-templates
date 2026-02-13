@@ -9,4 +9,5 @@ spec:
   targets:
     - ./developer-experience/template.yaml
     - ./platform/groups.yaml
+    - ./platform/users.yaml
     - ./platform/workshop-collection.yaml

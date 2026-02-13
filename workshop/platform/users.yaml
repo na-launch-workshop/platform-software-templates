@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1beta1
+kind: User
+metadata:
+  name: admin
+  description: Workshop Administrator
+spec:
+  profile:
+    displayName: Workshop Administrator
+    email: admin@openshift.com
+    picture: https://raw.githubusercontent.com/na-launch-workshop/platform-charts/main/charts/developer_hub/images/red-hat.png

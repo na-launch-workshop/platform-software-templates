@@ -1,8 +1,8 @@
-# Developer Experience Workshop
+# Red Hat Launch Workshop
 
 ## Greetings!
 
-Welcome to the Red Hat Developer Experience Workshop!  We're excited to have you join us as we dive into modern software development workflows, tools, and best practices using the Red Hat development stack.
+Welcome to the Red Hat Launch Workshop!  We're excited to have you join us as we dive into modern software development workflows, tools, and best practices using the Red Hat development stack.
 
 ## Let's Get Started!
 
@@ -18,5 +18,3 @@ Shortcuts to the tools are also available from the OpenShift web console's *Appl
 [*Developer Hub*](https://backstage-developer-hub-backstage.${{ values.cluster.domains.shared }})
 
 [*Dev Spaces*](https://devspaces.apps.${{values.devspaces.domain}})
-
-*Jaeger UI* - Link in Openshift console of specific environment

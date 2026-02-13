@@ -7,5 +7,17 @@ spec:
   type: team
   profile:
     displayName: Red Hat Workshop Admins
-    picture: https://github.com/na-launch-workshop/platform-software-templates/tree/main/workshop/platform/red-hat-launch-team.png
+    picture: https://raw.githubusercontent.com/na-launch-workshop/platform-charts/main/charts/developer_hub/images/red-hat-launch-team.png
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: developers
+  description: Developers
+spec:
+  type: team
+  profile:
+    displayName: Developers
+    picture: https://raw.githubusercontent.com/na-launch-workshop/platform-charts/main/charts/developer_hub/images/red-hat-developer.png
   children: []

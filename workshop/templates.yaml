@@ -3,11 +3,12 @@ kind: Location
 metadata:
   name: workshop-templates
   description: |
-    A collection of workshop templates.
+    A collection of workshop templates
 spec:
   type: url
   targets:
-    - ./developer-experience/template.yaml
+    - ./developer-experience/gitea/template.yaml
+    - ./developer-experience/gitlab/template.yaml
     - ./platform/groups.yaml
     - ./platform/users.yaml
     - ./platform/workshop-collection.yaml

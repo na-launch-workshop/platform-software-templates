@@ -1,17 +1,17 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: developer-experience-workshop
-  title: Workshop - Developer Experience
+  name: developer-experience-gitea-workshop
+  title: Workshop - Developer Experience - Gitea
   description: |
-    One-Time Use: This template automates the creation of a GitLab root repository from a predefined 
+    One-Time Use: This template automates the creation of a Gitea root repository from a predefined 
     skeleton and configures an ArgoCD application to automatically synchronize changes from the 
     repository. The root repository is intended to serve as the central point for managing applications. 
     Any team-based self-service repositories will attach their applications to this root repository 
     and will be synced from it, ensuring a cohesive and streamlined continuous deployment process. 
     This template is intended for single use to prevent conflicts with the root structure.
   tags:
-    - gitlab
+    - gitea
     - argocd
     - automation
     - devops
@@ -19,7 +19,7 @@ metadata:
     - one-time-use
 
 spec:
-  owner: cluster-admins
+  owner: workshop-admins
   system: self-service
   type: workshop
   parameters:
@@ -29,14 +29,14 @@ spec:
           type: object
           title: General Settings
           properties:
-            gitlabOwner:
-              title: GitLab Owner
+            giteaOwner:
+              title: Gitea Owner
               type: string
-              default: self-provisioned
-              description: GitLab group or username that owns the repository
+              default: workshop
+              description: Gitea group or username that owns the repository
               ui:widget: hidden
-            gitlabRepository:
-              title: GitLab Repository Name
+            giteaRepository:
+              title: Gitea Repository Name
               type: string
               default: workshop-repository
               description: Repository name used to initialize workshop
@@ -115,17 +115,17 @@ spec:
     #################################
     ## Create Empty Repository
     #################################
-    - id: publishEmptyRepo
-      name: "Create Empty Repository"
-      action: publish:gitlab
-      input:
-        repoUrl: gitlab.com?owner=${{ parameters.general.gitlabOwner }}&repo=${{ parameters.general.gitlabRepository }}
-        defaultBranch: main
-        settings:
-          visibility: "internal"
-        branches:
-          - name: main
-            protect: true
+    #- id: publishEmptyRepo
+    #  name: "Create Empty Repository"
+    #  action: publish:gitlab
+    #  input:
+    #    repoUrl: gitlab.com?owner=${{ parameters.general.gitlabOwner }}&repo=${{ parameters.general.gitlabRepository }}
+    #    defaultBranch: main
+    #    settings:
+    #      visibility: "internal"
+    #    branches:
+    #      - name: main
+    #        protect: true
 
     ##########################
     ## Template the Repository
@@ -143,11 +143,15 @@ spec:
         values:
           path: "projects"
           projectName: "default"
-          owner: "group:default/cluster-admins"
-          gitlabRemoteUrl: ${{ steps['publishEmptyRepo'].output.remoteUrl }}
-          gitlabOwner: ${{ parameters.general.gitlabOwner }}
-          gitlabRepository: ${{ parameters.general.gitlabRepository }}
-          gitlabBranch: main
+          owner: "group:default/workshop-admins"
+
+          ## TODO: need to figure out how to dynamically populate this gitea url; may want to try proxy configuration
+
+          giteaRemoteUrl: gitea.com
+          # ${{ steps['publishEmptyRepo'].output.remoteUrl }}
+          giteaOwner: ${{ parameters.general.giteaOwner }}
+          giteaRepository: ${{ parameters.general.giteaRepository }}
+          giteaBranch: main
           devspaces:
             domain: ${{ steps['fetchArgoCDInstances'].output.entity.spec.devspaces.domain }}
           cluster:
@@ -172,14 +176,17 @@ spec:
         copyWithoutTemplating:
           - kustomization.yaml
         values:
-          gitlabRemoteUrl: ${{ steps['publishEmptyRepo'].output.remoteUrl }}
-          gitlabBranch: main
+          #giteaRemoteUrl: ${{ steps['publishEmptyRepo'].output.remoteUrl }}
+          ## same as above, need to figure out proxying or extracting the full url
+          giteaRemoteUrl: gitea.com
+
+          giteaBranch: main
           cluster:
             domains:
               local: "apps.${{ each.value.domain }}"
               shared: ${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}
             type: "${{ each.value.type }}"
-          gitlabOwner: ${{ parameters.general.gitlabOwner }}
+          giteaOwner: ${{ parameters.general.giteaOwner }}
           devspaces:
             sku: ${{ parameters.devspaces.devspacesMachineType }}
             enableCapacity: ${{ parameters.devspaces.enableDevspaces }}
@@ -188,19 +195,27 @@ spec:
             sku: ${{ parameters.kafka.kafkaMachineType }}
             enableCapacity: ${{ parameters.kafka.enableKafka }}
             count: ${{ parameters.kafka.kafkaMachineCount }}
-          gitlabRepository: ${{ parameters.general.gitlabRepository }}
+          giteaRepository: ${{ parameters.general.giteaRepository }}
 
     #################################
     ## Create Self-Service Repository
     #################################
+    #- id: publish
+    #  name: "Create Self-Service Repository"
+    #  action: gitlab:repo:push
+    #  input:
+    #    repoUrl: gitlab.com?owner=${{ parameters.general.gitlabOwner }}&repo=${{ parameters.general.gitlabRepository }}
+    #    branchName: main
+    #    commitAction: create
+    #    commitMessage: "Publish repository skeleton"
+
     - id: publish
-      name: "Create Self-Service Repository"
-      action: gitlab:repo:push
+      name: Create Self-Service Repository
+      action: publish:gitea
       input:
-        repoUrl: gitlab.com?owner=${{ parameters.general.gitlabOwner }}&repo=${{ parameters.general.gitlabRepository }}
-        branchName: main
-        commitAction: create
-        commitMessage: "Publish repository skeleton"
+        description: Publish repository skeleton
+        repoUrl: gitea.com
+        defaultBranch: main
 
     #################################
     ## ArgoCD Resources Configuration
@@ -213,7 +228,7 @@ spec:
         appName: "workshop-orchestrator"
         argoInstance: ${{ each.value.name }}
         namespace: "openshift-gitops"
-        repoUrl: "${{ steps['publishEmptyRepo'].output.remoteUrl }}.git"
+        repoUrl: "${{ steps.publish.output.remoteUrl }}"
         path: "_init_/workshop/overlays/${{ each.value.name }}"
 
     ########################
@@ -223,13 +238,13 @@ spec:
       name: "Register Catalog Info"
       action: catalog:register
       input:
-        repoContentsUrl: ${{ steps["publishEmptyRepo"].output.repoContentsUrl }}
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
         catalogInfoPath: /catalog-info.yaml
 
   output:
     links:
       - title: GitLab Repository
-        url: ${{ steps['publishEmptyRepo'].output.remoteUrl }}
+        url: ${{ steps.publish.output.remoteUrl }}
       - title: Open in catalog
         icon: catalog
-        entityRef: component:default/root-self-service-repository
+        entityRef: ${{ steps.registerCatalog.output.entityRef }}

@@ -4,8 +4,8 @@ metadata:
   name: workshop
   description: Red Hat Launch Workshop
   annotations:
-    backstage.io/source-location: url:https://github.com/na-launch-workshop
-    backstage.io/techdocs-ref: url:https://github.com/na-launch-workshop
+    backstage.io/source-location: url:https://github.com/na-launch-workshop/.github/tree/main
+    backstage.io/techdocs-ref: url:https://github.com/na-launch-workshop/.github/tree/main
   tags:
     - workshop
 spec:

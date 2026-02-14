@@ -147,7 +147,7 @@ spec:
 
           ## TODO: need to figure out how to dynamically populate this gitea url; may want to try proxy configuration
 
-          giteaRemoteUrl: gitea.com
+          giteaRemoteUrl: {{ integrations.gitea[0].host }}
           # ${{ steps['publishEmptyRepo'].output.remoteUrl }}
           giteaOwner: ${{ parameters.general.giteaOwner }}
           giteaRepository: ${{ parameters.general.giteaRepository }}
@@ -177,8 +177,8 @@ spec:
           - kustomization.yaml
         values:
           #giteaRemoteUrl: ${{ steps['publishEmptyRepo'].output.remoteUrl }}
-          ## same as above, need to figure out proxying or extracting the full url
-          giteaRemoteUrl: gitea.com
+          ## TODO: same as above, need to figure out proxying or extracting the full url
+          giteaRemoteUrl: {{ integrations.gitea[0].host }}
 
           giteaBranch: main
           cluster:
@@ -214,7 +214,7 @@ spec:
       action: publish:gitea
       input:
         description: Publish repository skeleton
-        repoUrl: gitea.com
+        repoUrl: {{ integrations.gitea[0].host }}
         defaultBranch: main
 
     #################################

@@ -64,6 +64,7 @@ spec:
   owner: group:default/workshop-admins
   system: workshop
   dependsOn:
+    - component:default/workshop-ansible-collections
     - component:default/workshop-charts
     - component:default/workshop-supporting-charts
 ---
@@ -145,7 +146,6 @@ metadata:
     backstage.io/techdocs-ref: url:https://github.com/na-launch-workshop/platform-workshop-setup/tree/main
   tags:
     - workshop
-    - docs
 spec:
   type: docs
   lifecycle: production
@@ -153,4 +153,10 @@ spec:
   system: workshop
   dependsOn:
     - component:default/workshop-ansible-collections
+    - component:default/workshop-charts
+    - component:default/workshop-cluster-bootstrapper
+    - component:default/workshop-container-library
+    - component:default/workshop-software-templates
+    - component:default/workshop-supporting-charts
+    - component:default/workshop-terraform-clusters
 ---

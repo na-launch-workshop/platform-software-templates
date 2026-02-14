@@ -10,5 +10,4 @@ spec:
     - ./developer-experience/gitea/template.yaml
     - ./developer-experience/gitlab/template.yaml
     - ./platform/groups.yaml
-    - ./platform/users.yaml
     - ./platform/workshop-collection.yaml

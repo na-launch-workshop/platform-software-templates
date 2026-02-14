@@ -145,9 +145,8 @@ spec:
           projectName: "default"
           owner: "group:default/workshop-admins"
 
-          ## TODO: need to figure out how to dynamically populate this gitea url; may want to try proxy configuration
-
-          giteaRemoteUrl: {{ config.get('integrations.gitea[0].host') }}
+          # https://backstage.io/docs/features/software-templates/configuration/#publishing-defaults
+          giteaRemoteUrl: gitea.{{ environment.parameters.host }} # Resolves to defaultEnvironment.parameters.host
           # ${{ steps['publishEmptyRepo'].output.remoteUrl }}
           giteaOwner: ${{ parameters.general.giteaOwner }}
           giteaRepository: ${{ parameters.general.giteaRepository }}
@@ -178,7 +177,7 @@ spec:
         values:
           #giteaRemoteUrl: ${{ steps['publishEmptyRepo'].output.remoteUrl }}
           ## TODO: same as above, need to figure out proxying or extracting the full url
-          giteaRemoteUrl: {{ config.get('integrations.gitea[0].host' }}
+          giteaRemoteUrl: gitea.{{ environment.parameters.host }}
 
           giteaBranch: main
           cluster:
@@ -214,7 +213,7 @@ spec:
       action: publish:gitea
       input:
         description: Publish repository skeleton
-        repoUrl: {{ config.get('integrations.gitea[0].host') }}
+        repoUrl: gitea.{{ environment.parameters.host }}
         defaultBranch: main
 
     #################################

@@ -146,8 +146,10 @@ spec:
           owner: "group:default/workshop-admins"
 
           # https://backstage.io/docs/features/software-templates/configuration/#publishing-defaults
-          giteaRemoteUrl: ${{ environment.parameters.giteaUrl }}
-          # ${{ steps['publishEmptyRepo'].output.remoteUrl }}
+          # RFE: Using defaultEnvironment parameters for scaffolder will be enabled in Backstage 1.46+
+          # giteaRemoteUrl: ${{ environment.parameters.giteaUrl }}
+          
+        giteaRemoteUrl: https://gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}
           giteaOwner: ${{ parameters.general.giteaOwner }}
           giteaRepository: ${{ parameters.general.giteaRepository }}
           giteaBranch: main
@@ -176,9 +178,10 @@ spec:
           - kustomization.yaml
         values:
           #giteaRemoteUrl: ${{ steps['publishEmptyRepo'].output.remoteUrl }}
-          ## TODO: same as above, need to figure out proxying or extracting the full url
-          giteaRemoteUrl: ${{ environment.parameters.giteaUrl }}
+          # RFE: See above
+          # giteaRemoteUrl: ${{ environment.parameters.giteaUrl }}
 
+          giteaRemoteUrl: https://gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}
           giteaBranch: main
           cluster:
             domains:
@@ -213,7 +216,9 @@ spec:
       action: publish:gitea
       input:
         description: Publish repository skeleton
-        repoUrl: ${{ environment.parameters.giteaUrl }}
+        # TODO: See above
+        # repoUrl: ${{ environment.parameters.giteaUrl }}
+        repoUrl: https://gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}
         defaultBranch: main
 
     #################################

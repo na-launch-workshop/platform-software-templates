@@ -149,7 +149,7 @@ spec:
           # RFE: Using defaultEnvironment parameters for scaffolder will be enabled in Backstage 1.46+
           # giteaRemoteUrl: ${{ environment.parameters.giteaUrl }}
           
-        giteaRemoteUrl: "gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}"
+          giteaRemoteUrl: "gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}"
           giteaOwner: ${{ parameters.general.giteaOwner }}
           giteaRepository: ${{ parameters.general.giteaRepository }}
           giteaBranch: main

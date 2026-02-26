@@ -149,7 +149,7 @@ spec:
           # RFE: Using defaultEnvironment parameters for scaffolder will be enabled in Backstage 1.46+
           # giteaRemoteUrl: ${{ environment.parameters.giteaUrl }}
           
-          giteaRemoteUrl: "gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}"
+          giteaRemoteUrl: "gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}?owner=${{ parameters.general.giteaOwner }}&repo=${{ parameters.general.giteaRepository }}"
           giteaOwner: ${{ parameters.general.giteaOwner }}
           giteaRepository: ${{ parameters.general.giteaRepository }}
           giteaBranch: main
@@ -181,7 +181,7 @@ spec:
           # RFE: See above
           # giteaRemoteUrl: ${{ environment.parameters.giteaUrl }}
 
-          giteaRemoteUrl: "gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}"
+          giteaRemoteUrl: "gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}?owner=${{ parameters.general.gitlabOwner }}&repo=${{ parameters.general.gitlabRepository }}"
           giteaBranch: main
           cluster:
             domains:
@@ -218,7 +218,7 @@ spec:
         description: Publish repository skeleton
         # TODO: See above
         # repoUrl: ${{ environment.parameters.giteaUrl }}
-        repoUrl: "gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}"
+        repoUrl: "gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}?owner=${{ parameters.general.gitlabOwner }}&repo=${{ parameters.general.gitlabRepository }}"
         defaultBranch: main
 
     #################################

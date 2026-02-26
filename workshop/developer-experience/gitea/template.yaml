@@ -181,7 +181,7 @@ spec:
           # RFE: See above
           # giteaRemoteUrl: ${{ environment.parameters.giteaUrl }}
 
-          giteaRemoteUrl: "gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}?owner=${{ parameters.general.gitlabOwner }}&repo=${{ parameters.general.gitlabRepository }}"
+          giteaRemoteUrl: "gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}"
           giteaBranch: main
           cluster:
             domains:
@@ -218,7 +218,7 @@ spec:
         description: Publish repository skeleton
         # TODO: See above
         # repoUrl: ${{ environment.parameters.giteaUrl }}
-        repoUrl: "gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}?owner=${{ parameters.general.gitlabOwner }}&repo=${{ parameters.general.gitlabRepository }}"
+        repoUrl: "gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}?owner=${{ parameters.general.giteaOwner }}&repo=${{ parameters.general.giteaRepository }}"
         defaultBranch: main
 
     #################################

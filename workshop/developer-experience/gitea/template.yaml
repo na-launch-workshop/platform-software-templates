@@ -112,21 +112,6 @@ spec:
       input:
         entityRef: resource:default/argocd-instances
 
-    #################################
-    ## Create Empty Repository
-    #################################
-    #- id: publishEmptyRepo
-    #  name: "Create Empty Repository"
-    #  action: publish:gitlab
-    #  input:
-    #    repoUrl: gitlab.com?owner=${{ parameters.general.gitlabOwner }}&repo=${{ parameters.general.gitlabRepository }}
-    #    defaultBranch: main
-    #    settings:
-    #      visibility: "internal"
-    #    branches:
-    #      - name: main
-    #        protect: true
-
     ##########################
     ## Template the Repository
     ##########################
@@ -177,7 +162,6 @@ spec:
         copyWithoutTemplating:
           - kustomization.yaml
         values:
-          #giteaRemoteUrl: ${{ steps['publishEmptyRepo'].output.remoteUrl }}
           # RFE: See above
           # giteaRemoteUrl: ${{ environment.parameters.giteaUrl }}
 
@@ -199,25 +183,11 @@ spec:
             count: ${{ parameters.kafka.kafkaMachineCount }}
           giteaRepository: ${{ parameters.general.giteaRepository }}
 
-    #################################
-    ## Create Self-Service Repository
-    #################################
-    #- id: publish
-    #  name: "Create Self-Service Repository"
-    #  action: gitlab:repo:push
-    #  input:
-    #    repoUrl: gitlab.com?owner=${{ parameters.general.gitlabOwner }}&repo=${{ parameters.general.gitlabRepository }}
-    #    branchName: main
-    #    commitAction: create
-    #    commitMessage: "Publish repository skeleton"
-
     - id: publish
       name: Create Self-Service Repository
       action: publish:gitea
       input:
         description: Publish repository skeleton
-        # TODO: See above
-        # repoUrl: ${{ environment.parameters.giteaUrl }}
         repoUrl: "gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}?owner=${{ parameters.general.giteaOwner }}&repo=${{ parameters.general.giteaRepository }}"
         defaultBranch: main
 
@@ -243,7 +213,7 @@ spec:
       action: catalog:register
       input:
         repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
-        catalogInfoPath: /catalog-info.yaml
+        catalogInfoPath: /main/catalog-info.yaml
 
   output:
     links:

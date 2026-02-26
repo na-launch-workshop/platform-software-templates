@@ -7,7 +7,7 @@ spec:
   goTemplateOptions: ["missingkey=error"]
   generators:
     - git:
-        repoURL: ${{ values.giteaRemoteUrl }}.git
+        repoURL: https://${{ values.giteaRemoteUrl }}/${{ values.giteaOwner }}/${{ values.giteaRepository }}.git
         revision: HEAD
         directories:
           - path: services/*/*/overlays/prod
@@ -19,7 +19,7 @@ spec:
     spec:
       project: default
       source:
-        repoURL: ${{ values.giteaRemoteUrl }}.git
+        repoURL: https://${{ values.giteaRemoteUrl }}/${{ values.giteaOwner }}/${{ values.giteaRepository }}.git
         targetRevision: HEAD
         path: '{{.path.path}}'
         kustomize:
@@ -38,3 +38,4 @@ spec:
         syncOptions:
           - CreateNamespace=true
           - Validate=false
+

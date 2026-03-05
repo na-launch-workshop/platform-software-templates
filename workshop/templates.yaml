@@ -9,5 +9,7 @@ spec:
   targets:
     - ./developer-experience/gitea/template.yaml
     - ./developer-experience/gitlab/template.yaml
+    - ./easteregg/template.yaml
     - ./platform/groups.yaml
+    - ./platform/easteregg-collection.yaml
     - ./platform/workshop-collection.yaml

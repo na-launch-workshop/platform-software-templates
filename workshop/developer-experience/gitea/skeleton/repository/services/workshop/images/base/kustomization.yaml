@@ -1,6 +1,8 @@
 resources:
-  - namespace.yaml
-  - dotnet-python-imagestream.yaml
-  - udi-rhel9-imagestream.yaml
-  - role-binding.yaml
-  - build-config.yaml
+- devspaces-build-ns.yaml
+- devspaces-dotnet-python-bc.yaml
+- devspaces-dotnet-python-is.yaml
+- module-opentelemetry-python-curl-bc.yaml
+- module-opentelemetry-python-curl-is.yaml
+- rolebinding.yaml
+- udi-rhel9-is.yaml

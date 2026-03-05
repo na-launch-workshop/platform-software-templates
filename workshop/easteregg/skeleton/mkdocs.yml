@@ -1,0 +1,8 @@
+site_name: ${{ values.name }} Easter Egg
+site_description: Home
+
+nav:
+  - The Secret Message: index.md
+
+plugins:
+  - techdocs-core

@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.name }}-easteregg
+  description: |
+    Find the secret message hidden in the Git repository
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - easteregg
+spec:
+  type: easteregg
+  lifecycle: experimental
+  owner: ${{ user.ref }}

@@ -1,8 +1,8 @@
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
-  namespace: devspaces-build
   name: devspaces-dotnet-python-build
+  namespace: devspaces-build
 spec:
   source:
     type: Git

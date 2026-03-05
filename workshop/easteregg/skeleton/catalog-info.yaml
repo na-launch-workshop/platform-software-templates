@@ -11,4 +11,4 @@ metadata:
 spec:
   type: easteregg
   lifecycle: experimental
-  owner: ${{ user.ref }}
+  owner: ${{ values.owner }}

@@ -47,7 +47,7 @@ spec:
         url: ./skeleton # Assumes a local folder with a README.md.njk
         values:
           name: ${{ parameters.eggName }}
-          owner: ${{ user.entity }}
+          owner: ${{ user.entity.metadata.name }}
           secretMessage: ${{ parameters.secretMessage }}
 
     - id: publish

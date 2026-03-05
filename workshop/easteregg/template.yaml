@@ -6,6 +6,7 @@ metadata:
   description: You've found an easter egg!  This template creates a new Gitea repository initialized with a secret README.
   tags:
     - gitea
+    - developers
     - easteregg
 spec:
   owner: group:default/easteregg
@@ -47,7 +48,7 @@ spec:
         url: ./skeleton # Assumes a local folder with a README.md.njk
         values:
           name: ${{ parameters.eggName }}
-          owner: ${{ user.entity.metadata.name }}
+          owner: user:default/${{ user.entity.metadata.name }}
           secretMessage: ${{ parameters.secretMessage }}
 
     - id: publish

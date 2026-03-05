@@ -1,0 +1,93 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: easteregg
+  description: Easter Egg!
+spec:
+  type: team
+  profile:
+    displayName: Easter Egg!
+    picture: https://raw.githubusercontent.com/na-launch-workshop/platform-charts/main/charts/developer_hub/images/easteregg.png
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  namespace: default
+  name: easter-egg-api
+  description: A specialized API for discovering and retrieving easter eggs from this workshop
+  tags:
+    - api
+    - easteregg
+spec:
+  type: openapi
+  lifecycle: experimental
+  owner: group:default/easteregg
+  profile:
+    displayName: Easter Egg API
+  definition: >+
+    ---
+  
+    openapi: 3.0.2
+
+    consumes:
+      - application/json
+      - text/plain
+    produces:
+      - application/json
+      - text/html
+    schemes:
+      - https
+      - http
+    info:
+      title: Easter Egg Retrieval API
+      description: API for managing a collection of easter eggs
+      version: 1.0.0
+      
+    paths:
+      /eggs:
+        get:
+          summary: Retrieve all discovered easter eggs
+          responses:
+            '200':
+              description: A list of hidden surprises.
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EasterEgg'
+      /eggs/{eggId}:
+        get:
+          summary: Get details of a specific egg
+          parameters:
+            - name: eggId
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            '200':
+              description: The egg details.
+            '404':
+              description: Egg not found (it's really well hidden).
+      /brew:
+        get:
+          summary: Try to brew coffee
+          responses:
+            '418':
+              description: I'm a teapot.
+    components:
+      schemas:
+        EasterEgg:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            hint:
+              type: string
+            rarity:
+              type: string
+              enum: [Common, Rare, Legendary]

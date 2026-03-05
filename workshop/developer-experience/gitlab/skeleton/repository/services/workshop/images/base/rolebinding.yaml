@@ -11,3 +11,6 @@ subjects:
 - kind: ServiceAccount
   name: builder
   namespace: devspaces-build
+- kind: ServiceAccount
+  name: builder
+  namespace: workshop-images

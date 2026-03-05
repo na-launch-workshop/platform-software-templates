@@ -1,0 +1,70 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: gitea-easter-egg-generator
+  title: Gitea Easter Egg Generator
+  description: You've found an easter egg!  This template creates a new Gitea repository initialized with a secret README.
+spec:
+  owner: group:default/easteregg
+  type: service
+
+  parameters:
+    - title: Egg Configuration
+      required: [eggName, secretMessage]
+      properties:
+        eggName:
+          title: Egg Name
+          type: string
+          description: The name of your secret Git repository
+          maxLength: 40
+          pattern: '^([a-zA-Z][a-zA-Z0-9]*)(-[a-zA-Z0-9]+)*$'
+          ui:autofocus: true
+          ui:help: 'Hint: alphanumeric tokens (first starts with letter) delimited by -'
+        secretMessage:
+          title: The Secret
+          type: string
+          description: The hidden message inside the README.
+          ui:widget: textarea
+
+  steps:
+
+    ###################################
+    ## Fetch Available ArgoCD Instances
+    ###################################
+    - action: catalog:fetch
+      id: fetchArgoCDInstances
+      name: Fetch ArgoCD Instances
+      input:
+        entityRef: resource:default/argocd-instances
+  
+    - id: fetch-template
+      name: Generating Egg Shell
+      action: fetch:template
+      input:
+        url: ./skeleton # Assumes a local folder with a README.md.njk
+        values:
+          name: ${{ parameters.eggName }}
+          secretMessage: ${{ parameters.secretMessage }}
+
+    - id: publish
+      name: Hiding the Egg in Gitea
+      action: publish:gitea
+      input:
+        description: "A hidden surprise: ${{ parameters.eggName }}"
+        repoUrl: "gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}?owner=developers&repo=${{ parameters.eggName }}"
+        defaultBranch: main
+
+    - id: register
+      name: Registering in Catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: catalog-info.yaml
+
+  output:
+    links:
+      - title: View source code for new easter egg
+        url: ${{ steps.publish.output.repoContentsUrl }}
+      - title: Open Easter Egg in Catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}

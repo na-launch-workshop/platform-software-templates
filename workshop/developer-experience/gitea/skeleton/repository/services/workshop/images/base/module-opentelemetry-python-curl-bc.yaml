@@ -1,0 +1,29 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: module-opentelemetry-python-curl-buildconfig
+  namespace: workshop-images
+spec:
+  failedBuildsHistoryLimit: 3
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: module-opentelemetry-python-curl:latest
+      namespace: openshift
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    contextDir: curl-cron
+    git:
+      uri: https://github.com/na-launch-workshop/workshop-python-openshift_telemetry_fastapi.git
+      ref: main
+    type: Git
+  strategy:
+    dockerStrategy:
+      dockerfilePath: Containerfile
+    type: Docker
+  successfulBuildsHistoryLimit: 3
+  triggers:
+  - type: ConfigChange

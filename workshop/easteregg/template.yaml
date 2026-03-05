@@ -2,8 +2,11 @@ apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
   name: gitea-easter-egg-generator
-  title: Gitea Easter Egg Generator
+  title: Easter Egg Generator
   description: You've found an easter egg!  This template creates a new Gitea repository initialized with a secret README.
+  tags:
+    - gitea
+    - easteregg
 spec:
   owner: group:default/easteregg
   type: service

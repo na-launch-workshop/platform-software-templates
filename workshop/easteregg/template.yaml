@@ -9,7 +9,7 @@ metadata:
     - developers
     - easteregg
 spec:
-  owner: group:default/easteregg
+  owner: group:default/developers
   type: service
 
   parameters:

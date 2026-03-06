@@ -146,6 +146,10 @@ metadata:
     backstage.io/techdocs-ref: url:https://github.com/na-launch-workshop/platform-workshop-setup/tree/main
   tags:
     - workshop
+  links:
+     - url: https://www.redhat.com
+       title: "You've found an easter egg!"
+       icon: web
 spec:
   type: docs
   lifecycle: production

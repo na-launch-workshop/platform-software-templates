@@ -84,6 +84,14 @@ spec:
         commitAction: create
         commitMessage: Initial commit
 
+    - id: register
+      name: Registering GitLab Repo in Catalog
+      action: catalog:register
+      if: ${{ parameters.sourceControlProvider == 'GitLab' }}
+      input:
+        repoContentsUrl: ${{ steps.publish-to-gitlab.output.repoContentsUrl }}
+        catalogInfoPath: catalog-info.yaml
+
     - id: publish-to-gitea
       name: Hiding the Egg in Gitea
       action: publish:gitea
@@ -94,18 +102,22 @@ spec:
         defaultBranch: main
 
     - id: register
-      name: Registering in Catalog
+      name: Registering Gitea Repo in Catalog
       action: catalog:register
+      if: ${{ parameters.sourceControlProvider == 'Gitea' }}
       input:
-        repoContentsUrl: >
-          ${{ steps.publish-to-gitlab.output.repoContentsUrl if parameters.sourceControlProvider == "GitLab"
-          else steps.publish-to-gitea.output.repoContentsUrl }}
+        repoContentsUrl: ${{ steps.publish-to-gitea.output.repoContentsUrl }}
         catalogInfoPath: catalog-info.yaml
 
   output:
     links:
       - title: View source code for new easter egg
-        url: ${{ steps.publish.output.repoContentsUrl }}
+        url: >
+          {% if parameters.sourceControlProvider == 'GitLab' -%}
+            ${{ steps.publish-to-gitlab.output.repoContentsUrl }}
+          {%- else -%}
+            ${{ steps.publish-to-gitea.output.repoContentsUrl }}
+          {%- endif %}
       - title: Open Easter Egg in Catalog
         icon: catalog
         entityRef: ${{ steps.register.output.entityRef }}

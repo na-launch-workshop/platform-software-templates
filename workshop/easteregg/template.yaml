@@ -1,11 +1,11 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: gitea-easter-egg-generator
-  title: Easter Egg Generator
-  description: You've found an easter egg!  This template creates a new Gitea repository initialized with a secret README.
+  name: easter-egg-template
+  title: Easter Egg Template
+  description: You've found an easter egg!  This template creates a new Git repository initialized with a secret README.
   tags:
-    - gitea
+    - git
     - developers
     - easteregg
 spec:
@@ -14,7 +14,11 @@ spec:
 
   parameters:
     - title: Egg Configuration
-      required: [eggName, secretMessage]
+      required:
+        - eggName
+        - secretMessage
+        - sourceControlProvider
+        - createNewRepository
       properties:
         eggName:
           title: Egg Name
@@ -29,6 +33,13 @@ spec:
           type: string
           description: The hidden message inside the README.
           ui:widget: textarea
+        sourceControlProvider:
+          title: Select source control provider
+          description: Choose your source control provider
+          type: string
+          enum:
+            - GitLab
+            - Gitea
 
   steps:
 
@@ -50,10 +61,34 @@ spec:
           name: ${{ parameters.eggName }}
           owner: user:default/${{ user.entity.metadata.name }}
           secretMessage: ${{ parameters.secretMessage }}
+    
+    - id: create-empty-gitlab-repo
+      name: Create an Empty GitLab Repository
+      action: publish:gitlab
+      if: ${{ parameters.sourceControlProvider == 'GitLab' }}
+      input:
+        repoUrl: "gitlab.com?owner=developers&repo=${{ parameters.eggName }}"
+        defaultBranch: main
+        settings:
+          visibility: internal
+        branches:
+          - name: main
+            protect: true
 
-    - id: publish
+    - id: publish-to-gitlab
+      name: Hiding the Egg in GitLab
+      action: gitlab:repo:push
+      if: ${{ parameters.sourceControlProvider == 'GitLab' }}
+      input:
+        repoUrl: gitlab.com?owner=developers&repo=${{ parameters.eggName }}"
+        branchName: main
+        commitAction: create
+        commitMessage: Initial commit
+
+    - id: publish-to-gitea
       name: Hiding the Egg in Gitea
       action: publish:gitea
+      if: ${{ parameters.sourceControlProvider == 'Gitea' }}
       input:
         description: "A hidden surprise: ${{ parameters.eggName }}"
         repoUrl: "gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}?owner=developers&repo=${{ parameters.eggName }}"
@@ -63,7 +98,9 @@ spec:
       name: Registering in Catalog
       action: catalog:register
       input:
-        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        repoContentsUrl: >
+          ${{ steps.publish-to-gitlab.output.repoContentsUrl if parameters.sourceControlProvider == "GitLab"
+          else steps.publish-to-gitea.output.repoContentsUrl }}
         catalogInfoPath: catalog-info.yaml
 
   output:

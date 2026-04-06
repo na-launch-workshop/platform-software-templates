@@ -1,0 +1,215 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+
+metadata:
+  name: generic-seed
+  title: Create wizard use cases
+  description: Use this template to create actual wizard use case templates
+  namespace: default
+  tags:
+    - aap-operations
+    - intermediate
+spec:
+  owner: RedHat
+  type: service
+
+  parameters:
+    - title: Project data
+      description: Provide project data
+      required:
+        - token
+        - organization
+        - scmUrl
+      properties:
+        token:
+          title: Token
+          type: string
+          description: Oauth2 token
+          ui:field: AAPTokenField
+          ui:backstage:
+            review:
+              show: false
+        scmType:
+          title: Select source control option
+          type: string
+          description: Select the source control option for your Ansible project.
+          default: Github
+          enum:
+            - Github
+            - Gitlab
+        organization:
+          title: Organization
+          description: Select organization
+          resource: organizations
+          ui:field: AAPResourcePicker
+          default:
+            id: 1
+            name: Default
+        jobInventory:
+          title: Inventory
+          description: Select inventory
+          resource: inventories
+          ui:field: AAPResourcePicker
+          default:
+            id: 1
+            name: Default
+        credentials:
+          title: Credentials
+          description: Select SCM credential for Private repositories
+          resource: credentials
+          ui:field: AAPResourcePicker
+        scmUrl:
+          title: Source control URL
+          type: string
+          ui:help: 'Source control URL: gitSourceControlUrlHelp'
+          ui:options:
+            rows: 5
+          default: https://github.com/ansible/ansible-pattern-loader
+        scmBranch:
+          title: Source control branch/tag/commit
+          type: string
+          ui:options:
+            rows: 5
+          default: main
+          ui:help: 'Branch to checkout. In addition to branches, you can input tags, commit hashes, and arbitrary refs. Some commit hashes and refs may not be available unless you also provide a custom refspec.'
+    - title: Template data
+      description: Provide template data
+      required:
+        - token
+        - useCases
+        - playbook
+        - aapHostName
+      properties:
+        token:
+          title: Token
+          type: string
+          description: Oauth2 token
+          ui:field: AAPTokenField
+          ui:backstage:
+            review:
+              show: false
+        useCases:
+          title: Use cases
+          type: array
+          minItems: 1
+          items:
+            type: object
+            enum:
+              - name: rhel
+                url: https://github.com/ansible-collections/community.rhel_ops
+                version: main
+              - name: network
+                url: https://github.com/redhat-cop/network.backup
+                version: main
+              - name: windows
+                url: https://github.com/redhat-cop/infra.windows_ops
+                version: main
+              - name: cloud
+                url: https://github.com/redhat-cop/cloud.aws_ops
+                version: main
+            enumNames:
+              - Rhel
+              - Network
+              - Windows
+              - Cloud
+          uniqueItems: true
+          ui:widget: checkboxes
+        playbook:
+          title: Playbook
+          description: Select playbook
+          type: string
+          ui:options:
+            rows: 5
+          default: seed_portal_content.yml
+        aapHostName:
+          title: AAP URL
+          resource: aaphostname
+          ui:field: AAPResourcePicker
+          default:
+            id: 1
+            name: Default
+      errorMessage:
+        properties:
+          useCases: 'Select at least one use case.'
+  steps:
+     - id: create-project
+       name: Create project
+       action: rhaap:create-project
+       input:
+         token: ${{ parameters.token }}
+         deleteIfExist: true
+         values:
+            projectName: 'Self Service Job Template Project'
+            projectDescription: 'Self Service Job Template Project'
+            organization: ${{ parameters.organization }}
+            scmUrl: ${{ parameters.scmUrl }}
+            scmBranch: ${{ parameters.scmBranch }}
+            scmUpdateOnLaunch: true
+            credentials: ${{ parameters.credentials }}
+     - id: create-ee
+       name: Create execution environment
+       action: rhaap:create-execution-environment
+       input:
+         token: ${{ parameters.token }}
+         deleteIfExist: true
+         values:
+           environmentName: 'Self Service Job Template execution environment'
+           organization: ${{ parameters.organization }}
+           image: 'quay.io/portal_mvp_patterns/ansible-pattern-loader:latest'
+           pull: always
+     - id: create-template
+       name: Create job template
+       action: rhaap:create-job-template
+       input:
+         token: ${{ parameters.token }}
+         deleteIfExist: true
+         values:
+           templateName: 'Self Service Job Template'
+           templateDescription: 'Self Service Job Template'
+           scmType: ${{ parameters.scmType }}
+           project: ${{steps['create-project'].output.project }}
+           organization: ${{ parameters.organization }}
+           jobInventory: ${{ parameters.jobInventory }}
+           playbook: ${{ parameters.playbook }}
+           executionEnvironment: ${{steps['create-ee'].output.executionEnvironment }}
+           credentials: ${{ parameters.credentials }}
+           extraVariables:
+             aap_hostname: ${{ parameters.aapHostName }}
+             aap_token: ${{ parameters.token }}
+             usecases: ${{ parameters.useCases }}
+             seed_usecase: ${{ parameters.useCases | useCaseNameFilter }}
+             organization: ${{ parameters.organization | resourceFilter('name')}}
+             credential: ${{ parameters.credentials | resourceFilter('name')}}
+     - id: launch-job
+       name: Launch job template
+       action: rhaap:launch-job-template
+       input:
+         token: ${{ parameters.token }}
+         values:
+           template: ${{steps['create-template'].output.template}}
+     - id: clean-up
+       name: Clean up
+       action: rhaap:clean-up
+       input:
+         token: ${{ parameters.token }}
+         values:
+           project: ${{steps['create-project'].output.project }}
+           executionEnvironment: ${{steps['create-ee'].output.executionEnvironment }}
+           template: ${{steps['create-template'].output.template }}
+     - id: create-showcase
+       name: Create showcases
+       action: rhaap:create-show-cases
+       input:
+         token: ${{ parameters.token }}
+         values:
+           organization: ${{ parameters.organization }}
+           scmType: ${{ parameters.scmType }}
+           useCases: ${{ parameters.useCases }}
+  output:
+    text:
+      - title: 'Job generic seed template executed successfully'
+        content: |
+          **Job ID:** `${{ steps['launch-job'].output.data.id }}`
+    links:
+      - title: View in RH AAP
+        url: ${{ steps['launch-job'].output.data.url }}

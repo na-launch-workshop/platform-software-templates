@@ -1,0 +1,180 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: ansible-collection-template
+  title: Create Ansible Collection Project
+  description: Create a new starter collection Git project preconfigured with best practices.
+  tags:
+    - recommended
+    - ansible
+    - collection
+spec:
+  owner: ansible-authors
+  system: ansible
+  type: service
+  parameters:
+    - title: Provide information about the new component
+      required:
+        - sourceControl
+        - repoOwner
+        - repoName
+        - owner
+        - collectionGroup
+        - collectionName
+      properties:
+        sourceControl:
+          title: Select source control option
+          type: string
+          description: Select the source control option for your Ansible project.
+          default: gitlab
+          enum:
+            - gitlab
+            - gitea
+          enumNames:
+            - 'GitLab'
+            - 'Gitea'
+        repoOwner:
+          title: Source code repository organization name or username
+          type: string
+          description: The organization name or username of your source code repository. For example, “my-github-username”.
+          maxLength: 100
+        repoName:
+          title: Collection repository name
+          description: The name of the new collection project repository. For example, “my-new-collection-repo”.
+          type: string
+          maxLength: 100
+          pattern: '^([a-zA-Z][a-zA-Z0-9_]*)(-[a-zA-Z0-9_]+)*$'
+        description:
+          title: Collection description
+          type: string
+          description: Describe the collection and its purpose to help other users understand what to use it for.
+          maxLength: 350
+        collectionGroup:
+          title: Collection namespace
+          description: The new collection project's namespace. For example, “my_new_collection_namespace”.
+          type: string
+          maxLength: 63
+          minLength: 2
+          pattern: '^[a-z][a-z0-9_]+$'
+        collectionName:
+          title: Collection name
+          description: The new collection project's name. For example, “my_new_collection_name”.
+          type: string
+          maxLength: 63
+          minLength: 2
+          pattern: '^[a-z][a-z0-9_]+$'
+        owner:
+          title: Catalog Owner name
+          type: string
+          description: The Red Hat Developer Hub catalog item owner. This will appear on the “My items” tab. For example, “my-devhub-username”.
+          ui:field: EntityPicker
+          ui:options:
+            catalogFilter:
+              kind:
+                - Group
+                - User
+        system:
+          title: System
+          type: string
+          description: The Red Hat Developer Hub system catalog item name. This will appear on the “My items” tab. For example, “my-devhub-system”.
+          ui:field: EntityPicker
+          ui:options:
+            catalogFilter:
+              kind:
+                - System
+  steps:
+
+    - action: catalog:fetch
+      id: fetchArgoCDInstances
+      name: Fetch ArgoCD Instances
+      input:
+        entityRef: resource:default/argocd-instances
+
+    - id: ansible
+      name: Generating the Ansible Source Code Component
+      action: ansible:content:create
+      input:
+        repoOwner: '${{ parameters.repoOwner }}'
+        repoName: '${{ parameters.repoName }}'
+        description: '${{ parameters.description }}'
+        collectionGroup: '${{ parameters.collectionGroup }}'
+        collectionName: '${{ parameters.collectionName }}'
+        applicationType: collection-project
+        sourceControl: '${{ parameters.sourceControl }}.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}'
+
+    - id: catalogTemplate
+      name: Generating the Catalog Info Component
+      action: fetch:template
+      input:
+        url: ../catalog-info/
+        values:
+          repoUrl: ${{ steps.ansible.output.repoUrl }}
+          owner: ${{ parameters.owner }}
+          system: ${{ parameters.system }}
+          applicationType: collection-project
+          description: ${{ parameters.description }}
+          collectionGroup: ${{ parameters.collectionGroup }}
+          collectionName: ${{ parameters.collectionName }}
+          sourceControl: '${{ parameters.sourceControl }}.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}'
+          devSpacesBaseUrl: ${{ steps.ansible.output.devSpacesBaseUrl }}
+
+    - id: create-empty-gitlab-repo
+      name: Create an Empty GitLab Repository
+      action: publish:gitlab
+      if: ${{ parameters.sourceControl == 'gitlab' }}
+      input:
+        repoUrl: "gitlab.com?owner=${{ parameters.repoOwner }}&repo=${{ parameters.repoName }}"
+        defaultBranch: main
+        settings:
+          visibility: internal
+        branches:
+          - name: main
+            protect: true
+
+    - id: publish-to-gitlab
+      name: Publish to GitLab
+      action: gitlab:repo:push
+      if: ${{ parameters.sourceControl == 'gitlab' }}
+      input:
+        repoUrl: gitlab.com?owner=${{ parameters.repoOwner }}&repo=${{ parameters.repoName }}"
+        branchName: main
+        commitAction: create
+        commitMessage: Initial commit
+
+    - id: register-gitlab
+      name: Registering GitLab Repo in Catalog
+      action: catalog:register
+      if: ${{ parameters.sourceControl == 'gitlab' }}
+      input:
+        repoContentsUrl: ${{ steps['publish-to-gitlab'].output.repoContentsUrl }}
+        catalogInfoPath: catalog-info.yaml
+
+    - id: publish-to-gitea
+      name: Publish to Gitea
+      action: publish:gitea
+      input:
+        description: ${{ parameters.description }}
+        repoUrl: ${{ steps.ansible.output.repoUrl }}
+        repoVisibility: 'public'
+        defaultBranch: main
+
+    - id: register-gitea
+      name: Registering Gitea Repo in Catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['publish-to-gitea'].output.repoContentsUrl }}
+        catalogInfoPath: catalog-info.yaml
+
+  output:
+    links:
+      - title: Repository
+        url: >
+          {% if parameters.sourceControl == 'gitlab' -%}
+            ${{ steps['publish-to-gitlab'].output.repoContentsUrl }}
+          {%- else -%}
+            ${{ steps['publish-to-gitea'].output.repoContentsUrl }}
+          {%- endif %}
+
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}

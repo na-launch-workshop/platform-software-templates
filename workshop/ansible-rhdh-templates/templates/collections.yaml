@@ -143,15 +143,18 @@ spec:
     - id: publish-to-gitea
       name: Publish to Gitea
       action: publish:gitea
+      if: ${{ parameters.sourceControl == 'gitea' }}
       input:
         description: ${{ parameters.description }}
         repoUrl: ${{ steps.ansible.output.repoUrl }}
+        repoUrl: "gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}?owner=${{ parameters.repoOwner }}&repo=${{ parameters.repoName }}"
         repoVisibility: 'public'
         defaultBranch: main
 
     - id: register-gitea
       name: Registering Gitea Repo in Catalog
       action: catalog:register
+      if: ${{ parameters.sourceControl == 'gitea' }}
       input:
         repoContentsUrl: ${{ steps['publish-to-gitea'].output.repoContentsUrl }}
         catalogInfoPath: catalog-info.yaml

@@ -126,7 +126,7 @@ spec:
         repoUrl: "gitlab.com?owner=${{ parameters.repoOwner }}&repo=${{ parameters.repoName }}"
         defaultBranch: main
         settings:
-          visibility: internal
+          visibility: internal ### TODO: need to figure this out
         branches:
           - name: main
             protect: true
@@ -136,7 +136,7 @@ spec:
       action: gitlab:repo:push
       if: ${{ parameters.sourceControl == 'gitlab' }}
       input:
-        repoUrl: gitlab.com?owner=${{ parameters.repoOwner }}&repo=${{ parameters.repoName }}"
+        repoUrl: "gitlab.com?owner=${{ parameters.repoOwner }}&repo=${{ parameters.repoName }}"
         branchName: main
         commitAction: create
         commitMessage: Initial commit

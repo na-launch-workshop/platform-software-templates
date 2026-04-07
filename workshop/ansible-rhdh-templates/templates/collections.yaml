@@ -70,7 +70,13 @@ spec:
           type: string
           description: The Red Hat Developer Hub catalog item owner. This will appear on the “My items” tab. For example, “my-devhub-username”.
           default: ${{ user.entity.metadata.name }}
-          ui:field: OwnerPicker
+          ui:field: EntityPicker
+          ui:options:
+            # Limits dropdown results to only the user whose name matches the logged-in user
+            catalogFilter:
+              kind: User
+              metadata.name: ${{ user.entity.metadata.name }}
+            allowArbitraryValues: false
         system:
           title: System
           type: string

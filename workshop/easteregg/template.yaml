@@ -82,7 +82,7 @@ spec:
       if: ${{ parameters.sourceControlProvider == 'GitLab' }}
       input:
         repoContentsUrl: ${{ steps['publish-to-gitlab'].output.repoContentsUrl }}
-        catalogInfoPath: catalog-info.yaml
+        catalogInfoPath: /catalog-info.yaml
 
     - id: publish-to-gitea
       name: Hiding the Egg in Gitea

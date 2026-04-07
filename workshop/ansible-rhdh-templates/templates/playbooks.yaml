@@ -72,8 +72,8 @@ spec:
           ui:field: EntityPicker
           ui:options:
             catalogFilter:
-              kind: User
-              metadata.name: ${{ user.entity.metadata.name }}
+              kind: Group
+              metadata.name: developers
         system:
           title: System
           type: string

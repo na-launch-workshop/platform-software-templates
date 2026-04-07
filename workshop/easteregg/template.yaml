@@ -69,7 +69,7 @@ spec:
       input:
         repoUrl: "gitlab.com?owner=developers&repo=${{ parameters.eggName }}"
         defaultBranch: main
-                settings:
+        settings:
           visibility: internal
         branches:
           - name: main

@@ -35,6 +35,7 @@ spec:
         sourceControlProvider:
           title: Select source control provider
           description: Choose your source control provider
+          default: GitLab
           type: string
           enum:
             - GitLab

@@ -34,10 +34,12 @@ spec:
             - 'GitLab'
             - 'Gitea'
         repoOwner:
-          title: Source code repository organization name or username
+          title: Source code repository organization name
           type: string
-          description: The organization name or username of your source code repository. For example, “my-github-username”.
-          maxLength: 100
+          description: The organization name of your source code repository.
+          default: developers
+          enum:
+            - developers
         repoName:
           title: Collection repository name
           description: The name of the new collection project repository. For example, “my-new-collection-repo”.
@@ -67,7 +69,8 @@ spec:
           title: Catalog Owner name
           type: string
           description: The Red Hat Developer Hub catalog item owner. This will appear on the “My items” tab. For example, “my-devhub-username”.
-          ui:field: EntityPicker
+          default: ${{ user.entity }}
+          ui:field: OwnedEntityPicker
           ui:options:
             catalogFilter:
               kind:
@@ -77,7 +80,7 @@ spec:
           title: System
           type: string
           description: The Red Hat Developer Hub system catalog item name. This will appear on the “My items” tab. For example, “my-devhub-system”.
-          ui:field: EntityPicker
+          ui:field: OwnedEntityPicker
           ui:options:
             catalogFilter:
               kind:
@@ -169,4 +172,9 @@ spec:
 
       - title: Open in catalog
         icon: catalog
-        entityRef: ${{ steps.register.output.entityRef }}
+        entityRef: >
+          {% if parameters.sourceControl == 'gitlab' -%}
+            ${{ steps['register-gitlab'].output.entityRef }}
+          {%- else -%}
+            ${{ steps['register-gitea'].output.entityRef }}
+          {%- endif %}

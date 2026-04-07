@@ -3,6 +3,8 @@ kind: Group
 metadata:
   name: workshop-admins
   description: Workshop Admins
+  tags:
+    - admins
 spec:
   type: team
   profile:
@@ -15,9 +17,25 @@ kind: Group
 metadata:
   name: developers
   description: Developers
+  tags:
+    - developers
 spec:
   type: team
   profile:
     displayName: Developers
     picture: https://raw.githubusercontent.com/na-launch-workshop/platform-charts/main/charts/developer_hub/images/red-hat-developer.png
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: ansible-authors
+  description: Ansible Authors
+  tags:
+    - redhat
+spec:
+  type: team
+  profile:
+    displayName: Ansible Authors
+    picture: https://raw.githubusercontent.com/na-launch-workshop/platform-charts/main/charts/developer_hub/images/ansible.png
   children: []

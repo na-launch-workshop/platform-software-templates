@@ -118,28 +118,19 @@ spec:
           sourceControl: "${{ parameters.sourceControl }}.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}"
           devSpacesBaseUrl: ${{ steps.ansible.output.devSpacesBaseUrl }}
 
-    - id: create-empty-gitlab-repo
-      name: Create an Empty GitLab Repository
+    - id: publish-to-gitlab
+      name: Publish to GitLab
       action: publish:gitlab
       if: ${{ parameters.sourceControl == 'gitlab' }}
       input:
         repoUrl: "gitlab.com?owner=${{ parameters.repoOwner }}&repo=${{ parameters.repoName }}"
         defaultBranch: main
         settings:
-          visibility: internal ### TODO: need to figure this out
+          visibility: internal
         branches:
           - name: main
             protect: true
-
-    - id: publish-to-gitlab
-      name: Publish to GitLab
-      action: gitlab:repo:push
-      if: ${{ parameters.sourceControl == 'gitlab' }}
-      input:
-        repoUrl: "gitlab.com?owner=${{ parameters.repoOwner }}&repo=${{ parameters.repoName }}"
-        branchName: main
-        commitAction: create
-        commitMessage: Initial commit
+        gitCommitMessage: Initial commit
 
     - id: register-gitlab
       name: Registering GitLab Repo in Catalog

@@ -100,7 +100,7 @@ spec:
         collectionGroup: '${{ parameters.collectionGroup }}'
         collectionName: '${{ parameters.collectionName }}'
         applicationType: collection-project
-        sourceControl: '${{ parameters.sourceControl }}.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}'
+        sourceControl: "${{ parameters.sourceControl }}.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}"
 
     - id: catalogTemplate
       name: Generating the Catalog Info Component
@@ -115,7 +115,7 @@ spec:
           description: ${{ parameters.description }}
           collectionGroup: ${{ parameters.collectionGroup }}
           collectionName: ${{ parameters.collectionName }}
-          sourceControl: '${{ parameters.sourceControl }}.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}'
+          sourceControl: "${{ parameters.sourceControl }}.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}"
           devSpacesBaseUrl: ${{ steps.ansible.output.devSpacesBaseUrl }}
 
     - id: create-empty-gitlab-repo

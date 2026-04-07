@@ -83,10 +83,9 @@ spec:
               kind:
                 - System
   steps:
-
-    - action: catalog:fetch
-      id: fetchArgoCDInstances
+    - id: fetchArgoCDInstances
       name: Fetch ArgoCD Instances
+      action: catalog:fetch
       input:
         entityRef: resource:default/argocd-instances
 
@@ -146,7 +145,6 @@ spec:
       if: ${{ parameters.sourceControl == 'gitea' }}
       input:
         description: ${{ parameters.description }}
-        repoUrl: ${{ steps.ansible.output.repoUrl }}
         repoUrl: "gitea.${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}?owner=${{ parameters.repoOwner }}&repo=${{ parameters.repoName }}"
         repoVisibility: 'public'
         defaultBranch: main

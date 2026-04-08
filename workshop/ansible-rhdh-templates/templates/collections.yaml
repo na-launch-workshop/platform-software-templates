@@ -18,7 +18,6 @@ spec:
         - sourceControl
         - repoOwner
         - repoName
-        - owner
         - collectionGroup
         - collectionName
       properties:
@@ -65,16 +64,6 @@ spec:
           maxLength: 63
           minLength: 2
           pattern: '^[a-z][a-z0-9_]+$'
-        owner:
-          title: Catalog Owner name
-          type: string
-          description: The Red Hat Developer Hub catalog item owner. This will appear on the “My items” tab.
-          default: group:default/developers
-          ui:field: EntityPicker
-          ui:options:
-            catalogFilter:
-              kind: Group
-              metadata.name: developers
         system:
           title: System
           type: string
@@ -110,7 +99,7 @@ spec:
         url: ../catalog-info/
         values:
           repoUrl: ${{ steps.ansible.output.repoUrl }}
-          owner: ${{ parameters.owner }}
+          owner: ${{ user.ref }}
           system: ${{ parameters.system }}
           applicationType: collection-project
           description: ${{ parameters.description }}

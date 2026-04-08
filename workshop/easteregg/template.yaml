@@ -59,7 +59,7 @@ spec:
         url: ./skeleton # Assumes a local folder with a README.md.njk
         values:
           name: ${{ parameters.eggName }}
-          owner: user:default/${{ user.entity.metadata.name }}
+          owner: ${{ user.ref }}
           secretMessage: ${{ parameters.secretMessage }}
     
     - id: publish-to-gitlab

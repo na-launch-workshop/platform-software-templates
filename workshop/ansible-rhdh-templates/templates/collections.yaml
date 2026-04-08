@@ -69,6 +69,7 @@ spec:
           title: Catalog Owner name
           type: string
           description: The Red Hat Developer Hub catalog item owner. This will appear on the “My items” tab.
+          default: group:default/developers
           ui:field: EntityPicker
           ui:options:
             catalogFilter:

@@ -1,0 +1,146 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: clone-workshop-repos
+  title: Clone Workshop Repos to My GitLab
+  description: >
+    Clones all 6 Quarkus workshop repositories from GitHub into your personal
+    private GitLab namespace. Run this once at the start of the workshop.
+  tags:
+    - workshop
+    - quarkus
+    - gitlab
+spec:
+  owner: group:default/platform-team
+  type: workshop
+
+  parameters:
+    - title: Confirm Your GitLab Username
+      required:
+        - gitlabUsername
+      properties:
+        gitlabUsername:
+          title: Your GitLab Username
+          type: string
+          description: >
+            Repositories will be created under this namespace in GitLab.
+            Pre-filled from your login — only change this if it looks wrong.
+          default: ${{ user.entity.metadata.name }}
+
+  steps:
+    # ── Repo 1: hello_quarkus ──────────────────────────────────────────────
+    - id: fetch-hello-quarkus
+      name: Fetch hello_quarkus
+      action: fetch:plain
+      input:
+        url: https://github.com/na-launch-workshop/workshop-quarkus-hello_quarkus/archive/refs/heads/main.tar.gz
+        targetPath: ./workshop-quarkus-hello_quarkus
+
+    - id: publish-hello-quarkus
+      name: Publish hello_quarkus → GitLab
+      action: publish:gitlab
+      input:
+        repoUrl: "gitlab.com?owner=${{ parameters.gitlabUsername }}&repo=workshop-quarkus-hello_quarkus"
+        defaultBranch: main
+        repoVisibility: private
+        sourcePath: ./workshop-quarkus-hello_quarkus
+
+    # ── Repo 2: using_camel ────────────────────────────────────────────────
+    - id: fetch-using-camel
+      name: Fetch using_camel
+      action: fetch:plain
+      input:
+        url: https://github.com/na-launch-workshop/workshop-quarkus-using_camel/archive/refs/heads/main.tar.gz
+        targetPath: ./workshop-quarkus-using_camel
+
+    - id: publish-using-camel
+      name: Publish using_camel → GitLab
+      action: publish:gitlab
+      input:
+        repoUrl: "gitlab.com?owner=${{ parameters.gitlabUsername }}&repo=workshop-quarkus-using_camel"
+        defaultBranch: main
+        repoVisibility: private
+        sourcePath: ./workshop-quarkus-using_camel
+
+    # ── Repo 3: using_funqy_stateless_events ──────────────────────────────
+    - id: fetch-funqy
+      name: Fetch using_funqy_stateless_events
+      action: fetch:plain
+      input:
+        url: https://github.com/na-launch-workshop/workshop-quarkus-using_funqy_stateless_events/archive/refs/heads/main.tar.gz
+        targetPath: ./workshop-quarkus-using_funqy_stateless_events
+
+    - id: publish-funqy
+      name: Publish using_funqy_stateless_events → GitLab
+      action: publish:gitlab
+      input:
+        repoUrl: "gitlab.com?owner=${{ parameters.gitlabUsername }}&repo=workshop-quarkus-using_funqy_stateless_events"
+        defaultBranch: main
+        repoVisibility: private
+        sourcePath: ./workshop-quarkus-using_funqy_stateless_events
+
+    # ── Repo 4: blue_green_deployments_openshift ──────────────────────────
+    - id: fetch-blue-green
+      name: Fetch blue_green_deployments_openshift
+      action: fetch:plain
+      input:
+        url: https://github.com/na-launch-workshop/workshop-quarkus-blue_green_deployments_openshift/archive/refs/heads/main.tar.gz
+        targetPath: ./workshop-quarkus-blue_green_deployments_openshift
+
+    - id: publish-blue-green
+      name: Publish blue_green_deployments_openshift → GitLab
+      action: publish:gitlab
+      input:
+        repoUrl: "gitlab.com?owner=${{ parameters.gitlabUsername }}&repo=workshop-quarkus-blue_green_deployments_openshift"
+        defaultBranch: main
+        repoVisibility: private
+        sourcePath: ./workshop-quarkus-blue_green_deployments_openshift
+
+    # ── Repo 5: openshift_telemetry_with_micrometer ───────────────────────
+    - id: fetch-telemetry
+      name: Fetch openshift_telemetry_with_micrometer
+      action: fetch:plain
+      input:
+        url: https://github.com/na-launch-workshop/workshop-quarkus-openshift_telemetry_with_micrometer/archive/refs/heads/main.tar.gz
+        targetPath: ./workshop-quarkus-openshift_telemetry_with_micrometer
+
+    - id: publish-telemetry
+      name: Publish openshift_telemetry_with_micrometer → GitLab
+      action: publish:gitlab
+      input:
+        repoUrl: "gitlab.com?owner=${{ parameters.gitlabUsername }}&repo=workshop-quarkus-openshift_telemetry_with_micrometer"
+        defaultBranch: main
+        repoVisibility: private
+        sourcePath: ./workshop-quarkus-openshift_telemetry_with_micrometer
+
+    # ── Repo 6: interacting_with_kafka ────────────────────────────────────
+    - id: fetch-kafka
+      name: Fetch interacting_with_kafka
+      action: fetch:plain
+      input:
+        url: https://github.com/na-launch-workshop/workshop-quarkus-interacting_with_kafka/archive/refs/heads/main.tar.gz
+        targetPath: ./workshop-quarkus-interacting_with_kafka
+
+    - id: publish-kafka
+      name: Publish interacting_with_kafka → GitLab
+      action: publish:gitlab
+      input:
+        repoUrl: "gitlab.com?owner=${{ parameters.gitlabUsername }}&repo=workshop-quarkus-interacting_with_kafka"
+        defaultBranch: main
+        repoVisibility: private
+        sourcePath: ./workshop-quarkus-interacting_with_kafka
+
+  output:
+    links:
+      - title: hello_quarkus
+        url: ${{ steps['publish-hello-quarkus'].output.remoteUrl }}
+      - title: using_camel
+        url: ${{ steps['publish-using-camel'].output.remoteUrl }}
+      - title: using_funqy_stateless_events
+        url: ${{ steps['publish-funqy'].output.remoteUrl }}
+      - title: blue_green_deployments_openshift
+        url: ${{ steps['publish-blue-green'].output.remoteUrl }}
+      - title: openshift_telemetry_with_micrometer
+        url: ${{ steps['publish-telemetry'].output.remoteUrl }}
+      - title: interacting_with_kafka
+        url: ${{ steps['publish-kafka'].output.remoteUrl }}

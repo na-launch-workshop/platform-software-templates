@@ -7,7 +7,7 @@ metadata:
   links:
     - url: ${{ values.devspacesUrl }}
       title: Open in DevSpaces
-      icon: web
+      icon: launch
   annotations:
     gitlab.com/project-slug: ${{ values.gitlabUsername }}/${{ values.repoName }}
 spec:

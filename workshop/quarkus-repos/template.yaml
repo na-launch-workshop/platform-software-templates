@@ -14,18 +14,7 @@ spec:
   owner: workshop-admins
   type: service
 
-  parameters:
-    - title: Confirm Your GitLab Username
-      required:
-        - gitlabUsername
-      properties:
-        gitlabUsername:
-          title: Your GitLab Username
-          type: string
-          description: >
-            Repositories will be created under this namespace in GitLab.
-            Pre-filled from your login — only change this if it looks wrong.
-          default: ${{ user.entity.metadata.name }}
+  parameters: []
 
   steps:
     # ── Repo 1: hello_quarkus ──────────────────────────────────────────────
@@ -40,7 +29,7 @@ spec:
       name: Publish hello_quarkus → GitLab
       action: publish:gitlab
       input:
-        repoUrl: "gitlab.com?owner=${{ parameters.gitlabUsername }}&repo=workshop-quarkus-hello_quarkus"
+        repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-hello_quarkus"
         defaultBranch: main
         repoVisibility: private
         sourcePath: ./workshop-quarkus-hello_quarkus
@@ -57,7 +46,7 @@ spec:
       name: Publish using_camel → GitLab
       action: publish:gitlab
       input:
-        repoUrl: "gitlab.com?owner=${{ parameters.gitlabUsername }}&repo=workshop-quarkus-using_camel"
+        repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-using_camel"
         defaultBranch: main
         repoVisibility: private
         sourcePath: ./workshop-quarkus-using_camel
@@ -74,7 +63,7 @@ spec:
       name: Publish using_funqy_stateless_events → GitLab
       action: publish:gitlab
       input:
-        repoUrl: "gitlab.com?owner=${{ parameters.gitlabUsername }}&repo=workshop-quarkus-using_funqy_stateless_events"
+        repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-using_funqy_stateless_events"
         defaultBranch: main
         repoVisibility: private
         sourcePath: ./workshop-quarkus-using_funqy_stateless_events
@@ -91,7 +80,7 @@ spec:
       name: Publish blue_green_deployments_openshift → GitLab
       action: publish:gitlab
       input:
-        repoUrl: "gitlab.com?owner=${{ parameters.gitlabUsername }}&repo=workshop-quarkus-blue_green_deployments_openshift"
+        repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-blue_green_deployments_openshift"
         defaultBranch: main
         repoVisibility: private
         sourcePath: ./workshop-quarkus-blue_green_deployments_openshift
@@ -108,7 +97,7 @@ spec:
       name: Publish openshift_telemetry_with_micrometer → GitLab
       action: publish:gitlab
       input:
-        repoUrl: "gitlab.com?owner=${{ parameters.gitlabUsername }}&repo=workshop-quarkus-openshift_telemetry_with_micrometer"
+        repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-openshift_telemetry_with_micrometer"
         defaultBranch: main
         repoVisibility: private
         sourcePath: ./workshop-quarkus-openshift_telemetry_with_micrometer
@@ -125,7 +114,7 @@ spec:
       name: Publish interacting_with_kafka → GitLab
       action: publish:gitlab
       input:
-        repoUrl: "gitlab.com?owner=${{ parameters.gitlabUsername }}&repo=workshop-quarkus-interacting_with_kafka"
+        repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-interacting_with_kafka"
         defaultBranch: main
         repoVisibility: private
         sourcePath: ./workshop-quarkus-interacting_with_kafka

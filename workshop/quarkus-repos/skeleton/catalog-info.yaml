@@ -1,0 +1,16 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.repoName }}
+  title: ${{ values.title }}
+  description: Quarkus workshop - ${{ values.title }}
+  links:
+    - url: ${{ values.devspacesUrl }}
+      title: Open in DevSpaces
+      icon: web
+  annotations:
+    gitlab.com/project-slug: ${{ values.gitlabUsername }}/${{ values.repoName }}
+spec:
+  type: service
+  lifecycle: experimental
+  owner: user:default/${{ values.gitlabUsername }}

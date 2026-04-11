@@ -25,14 +25,34 @@ spec:
         url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-hello_quarkus/src/branch/main
         targetPath: ./workshop-quarkus-hello_quarkus
 
+    - id: catalog-hello-quarkus
+      name: Add catalog-info to hello_quarkus
+      action: fetch:template
+      input:
+        url: ./skeleton
+        targetPath: ./workshop-quarkus-hello_quarkus
+        values:
+          repoName: workshop-quarkus-hello_quarkus
+          title: hello_quarkus
+          gitlabUsername: ${{ user.entity.metadata.name }}
+          devspacesUrl: "https://devspaces.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/#https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-hello_quarkus"
+
     - id: publish-hello-quarkus
       name: Publish hello_quarkus → GitLab
       action: publish:gitlab
+      continueOnError: true
       input:
         repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-hello_quarkus"
         defaultBranch: main
         repoVisibility: private
         sourcePath: ./workshop-quarkus-hello_quarkus
+
+    - id: register-hello-quarkus
+      name: Register hello_quarkus in catalog
+      action: catalog:register
+      continueOnError: true
+      input:
+        catalogInfoUrl: "${{ steps['publish-hello-quarkus'].output.remoteUrl }}/-/blob/main/catalog-info.yaml"
 
     # ── Repo 2: using_camel ────────────────────────────────────────────────
     - id: fetch-using-camel
@@ -42,14 +62,34 @@ spec:
         url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-using_camel/src/branch/main
         targetPath: ./workshop-quarkus-using_camel
 
+    - id: catalog-using-camel
+      name: Add catalog-info to using_camel
+      action: fetch:template
+      input:
+        url: ./skeleton
+        targetPath: ./workshop-quarkus-using_camel
+        values:
+          repoName: workshop-quarkus-using_camel
+          title: using_camel
+          gitlabUsername: ${{ user.entity.metadata.name }}
+          devspacesUrl: "https://devspaces.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/#https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-using_camel"
+
     - id: publish-using-camel
       name: Publish using_camel → GitLab
       action: publish:gitlab
+      continueOnError: true
       input:
         repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-using_camel"
         defaultBranch: main
         repoVisibility: private
         sourcePath: ./workshop-quarkus-using_camel
+
+    - id: register-using-camel
+      name: Register using_camel in catalog
+      action: catalog:register
+      continueOnError: true
+      input:
+        catalogInfoUrl: "${{ steps['publish-using-camel'].output.remoteUrl }}/-/blob/main/catalog-info.yaml"
 
     # ── Repo 3: using_funqy_stateless_events ──────────────────────────────
     - id: fetch-funqy
@@ -59,14 +99,34 @@ spec:
         url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-using_funqy_stateless_events/src/branch/main
         targetPath: ./workshop-quarkus-using_funqy_stateless_events
 
+    - id: catalog-funqy
+      name: Add catalog-info to using_funqy_stateless_events
+      action: fetch:template
+      input:
+        url: ./skeleton
+        targetPath: ./workshop-quarkus-using_funqy_stateless_events
+        values:
+          repoName: workshop-quarkus-using_funqy_stateless_events
+          title: using_funqy_stateless_events
+          gitlabUsername: ${{ user.entity.metadata.name }}
+          devspacesUrl: "https://devspaces.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/#https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-using_funqy_stateless_events"
+
     - id: publish-funqy
       name: Publish using_funqy_stateless_events → GitLab
       action: publish:gitlab
+      continueOnError: true
       input:
         repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-using_funqy_stateless_events"
         defaultBranch: main
         repoVisibility: private
         sourcePath: ./workshop-quarkus-using_funqy_stateless_events
+
+    - id: register-funqy
+      name: Register using_funqy_stateless_events in catalog
+      action: catalog:register
+      continueOnError: true
+      input:
+        catalogInfoUrl: "${{ steps['publish-funqy'].output.remoteUrl }}/-/blob/main/catalog-info.yaml"
 
     # ── Repo 4: blue_green_deployments_openshift ──────────────────────────
     - id: fetch-blue-green
@@ -76,14 +136,34 @@ spec:
         url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-blue_green_deployments_openshift/src/branch/main
         targetPath: ./workshop-quarkus-blue_green_deployments_openshift
 
+    - id: catalog-blue-green
+      name: Add catalog-info to blue_green_deployments_openshift
+      action: fetch:template
+      input:
+        url: ./skeleton
+        targetPath: ./workshop-quarkus-blue_green_deployments_openshift
+        values:
+          repoName: workshop-quarkus-blue_green_deployments_openshift
+          title: blue_green_deployments_openshift
+          gitlabUsername: ${{ user.entity.metadata.name }}
+          devspacesUrl: "https://devspaces.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/#https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-blue_green_deployments_openshift"
+
     - id: publish-blue-green
       name: Publish blue_green_deployments_openshift → GitLab
       action: publish:gitlab
+      continueOnError: true
       input:
         repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-blue_green_deployments_openshift"
         defaultBranch: main
         repoVisibility: private
         sourcePath: ./workshop-quarkus-blue_green_deployments_openshift
+
+    - id: register-blue-green
+      name: Register blue_green_deployments_openshift in catalog
+      action: catalog:register
+      continueOnError: true
+      input:
+        catalogInfoUrl: "${{ steps['publish-blue-green'].output.remoteUrl }}/-/blob/main/catalog-info.yaml"
 
     # ── Repo 5: openshift_telemetry_with_micrometer ───────────────────────
     - id: fetch-telemetry
@@ -93,14 +173,34 @@ spec:
         url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-openshift_telemetry_with_micrometer/src/branch/main
         targetPath: ./workshop-quarkus-openshift_telemetry_with_micrometer
 
+    - id: catalog-telemetry
+      name: Add catalog-info to openshift_telemetry_with_micrometer
+      action: fetch:template
+      input:
+        url: ./skeleton
+        targetPath: ./workshop-quarkus-openshift_telemetry_with_micrometer
+        values:
+          repoName: workshop-quarkus-openshift_telemetry_with_micrometer
+          title: openshift_telemetry_with_micrometer
+          gitlabUsername: ${{ user.entity.metadata.name }}
+          devspacesUrl: "https://devspaces.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/#https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-openshift_telemetry_with_micrometer"
+
     - id: publish-telemetry
       name: Publish openshift_telemetry_with_micrometer → GitLab
       action: publish:gitlab
+      continueOnError: true
       input:
         repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-openshift_telemetry_with_micrometer"
         defaultBranch: main
         repoVisibility: private
         sourcePath: ./workshop-quarkus-openshift_telemetry_with_micrometer
+
+    - id: register-telemetry
+      name: Register openshift_telemetry_with_micrometer in catalog
+      action: catalog:register
+      continueOnError: true
+      input:
+        catalogInfoUrl: "${{ steps['publish-telemetry'].output.remoteUrl }}/-/blob/main/catalog-info.yaml"
 
     # ── Repo 6: interacting_with_kafka ────────────────────────────────────
     - id: fetch-kafka
@@ -110,14 +210,34 @@ spec:
         url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-interacting_with_kafka/src/branch/main
         targetPath: ./workshop-quarkus-interacting_with_kafka
 
+    - id: catalog-kafka
+      name: Add catalog-info to interacting_with_kafka
+      action: fetch:template
+      input:
+        url: ./skeleton
+        targetPath: ./workshop-quarkus-interacting_with_kafka
+        values:
+          repoName: workshop-quarkus-interacting_with_kafka
+          title: interacting_with_kafka
+          gitlabUsername: ${{ user.entity.metadata.name }}
+          devspacesUrl: "https://devspaces.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/#https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-interacting_with_kafka"
+
     - id: publish-kafka
       name: Publish interacting_with_kafka → GitLab
       action: publish:gitlab
+      continueOnError: true
       input:
         repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-interacting_with_kafka"
         defaultBranch: main
         repoVisibility: private
         sourcePath: ./workshop-quarkus-interacting_with_kafka
+
+    - id: register-kafka
+      name: Register interacting_with_kafka in catalog
+      action: catalog:register
+      continueOnError: true
+      input:
+        catalogInfoUrl: "${{ steps['publish-kafka'].output.remoteUrl }}/-/blob/main/catalog-info.yaml"
 
   output:
     links:

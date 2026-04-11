@@ -41,6 +41,7 @@ spec:
       input:
         url: ./skeleton
         targetPath: ./workshop-quarkus-hello_quarkus
+        replace: true
         values:
           repoName: workshop-quarkus-hello_quarkus
           title: hello_quarkus
@@ -62,6 +63,7 @@ spec:
       action: catalog:register
       if: ${{ not steps['check-hello-quarkus'].output.entity }}
       input:
+        optional: true
         catalogInfoUrl: "https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-hello_quarkus/-/blob/main/catalog-info.yaml"
 
     # ── Repo 2: using_camel ────────────────────────────────────────────────
@@ -108,6 +110,7 @@ spec:
       action: catalog:register
       if: ${{ not steps['check-using-camel'].output.entity }}
       input:
+        optional: true
         catalogInfoUrl: "https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-using_camel/-/blob/main/catalog-info.yaml"
 
     # ── Repo 3: using_funqy_stateless_events ──────────────────────────────
@@ -154,6 +157,7 @@ spec:
       action: catalog:register
       if: ${{ not steps['check-funqy'].output.entity }}
       input:
+        optional: true
         catalogInfoUrl: "https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-using_funqy_stateless_events/-/blob/main/catalog-info.yaml"
 
     # ── Repo 4: blue_green_deployments_openshift ──────────────────────────
@@ -200,6 +204,7 @@ spec:
       action: catalog:register
       if: ${{ not steps['check-blue-green'].output.entity }}
       input:
+        optional: true
         catalogInfoUrl: "https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-blue_green_deployments_openshift/-/blob/main/catalog-info.yaml"
 
     # ── Repo 5: openshift_telemetry_with_micrometer ───────────────────────
@@ -246,6 +251,7 @@ spec:
       action: catalog:register
       if: ${{ not steps['check-telemetry'].output.entity }}
       input:
+        optional: true
         catalogInfoUrl: "https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-openshift_telemetry_with_micrometer/-/blob/main/catalog-info.yaml"
 
     # ── Repo 6: interacting_with_kafka ────────────────────────────────────
@@ -292,6 +298,7 @@ spec:
       action: catalog:register
       if: ${{ not steps['check-kafka'].output.entity }}
       input:
+        optional: true
         catalogInfoUrl: "https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-interacting_with_kafka/-/blob/main/catalog-info.yaml"
 
   output:

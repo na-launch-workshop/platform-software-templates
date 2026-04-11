@@ -89,6 +89,7 @@ spec:
       input:
         url: ./skeleton
         targetPath: ./workshop-quarkus-using_camel
+        replace: true
         values:
           repoName: workshop-quarkus-using_camel
           title: using_camel
@@ -136,6 +137,7 @@ spec:
       input:
         url: ./skeleton
         targetPath: ./workshop-quarkus-using_funqy_stateless_events
+        replace: true
         values:
           repoName: workshop-quarkus-using_funqy_stateless_events
           title: using_funqy_stateless_events
@@ -183,6 +185,7 @@ spec:
       input:
         url: ./skeleton
         targetPath: ./workshop-quarkus-blue_green_deployments_openshift
+        replace: true
         values:
           repoName: workshop-quarkus-blue_green_deployments_openshift
           title: blue_green_deployments_openshift
@@ -230,6 +233,7 @@ spec:
       input:
         url: ./skeleton
         targetPath: ./workshop-quarkus-openshift_telemetry_with_micrometer
+        replace: true
         values:
           repoName: workshop-quarkus-openshift_telemetry_with_micrometer
           title: openshift_telemetry_with_micrometer
@@ -277,6 +281,7 @@ spec:
       input:
         url: ./skeleton
         targetPath: ./workshop-quarkus-interacting_with_kafka
+        replace: true
         values:
           repoName: workshop-quarkus-interacting_with_kafka
           title: interacting_with_kafka

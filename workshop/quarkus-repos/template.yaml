@@ -17,6 +17,12 @@ spec:
 
   parameters: []
 
+  review:
+      description: |
+        This will clone all 6 Quarkus workshop repositories into your personal GitLab namespace.
+        Each repo will be set up with a catalog entry and a DevSpaces link.
+        Safe to re-run — already-created repos are skipped automatically.
+
   steps:
     # ── Repo 1: hello_quarkus ──────────────────────────────────────────────
     - id: check-hello-quarkus

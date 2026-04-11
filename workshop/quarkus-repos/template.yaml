@@ -44,7 +44,7 @@ spec:
         replace: true
         values:
           repoName: workshop-quarkus-hello_quarkus
-          title: hello_quarkus
+          title: "Module 1 - hello_quarkus"
           gitlabUsername: ${{ user.entity.metadata.name }}
           devspacesUrl: "https://devspaces.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/#https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-hello_quarkus"
 
@@ -92,7 +92,7 @@ spec:
         replace: true
         values:
           repoName: workshop-quarkus-using_camel
-          title: using_camel
+          title: "Module 1 - using_camel"
           gitlabUsername: ${{ user.entity.metadata.name }}
           devspacesUrl: "https://devspaces.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/#https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-using_camel"
 
@@ -140,7 +140,7 @@ spec:
         replace: true
         values:
           repoName: workshop-quarkus-using_funqy_stateless_events
-          title: using_funqy_stateless_events
+          title: "Module 1 - using_funqy_stateless_events"
           gitlabUsername: ${{ user.entity.metadata.name }}
           devspacesUrl: "https://devspaces.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/#https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-using_funqy_stateless_events"
 
@@ -188,7 +188,7 @@ spec:
         replace: true
         values:
           repoName: workshop-quarkus-blue_green_deployments_openshift
-          title: blue_green_deployments_openshift
+          title: "Module 1 - blue_green_deployments_openshift"
           gitlabUsername: ${{ user.entity.metadata.name }}
           devspacesUrl: "https://devspaces.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/#https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-blue_green_deployments_openshift"
 
@@ -236,7 +236,7 @@ spec:
         replace: true
         values:
           repoName: workshop-quarkus-openshift_telemetry_with_micrometer
-          title: openshift_telemetry_with_micrometer
+          title: "Module 1 - openshift_telemetry_with_micrometer"
           gitlabUsername: ${{ user.entity.metadata.name }}
           devspacesUrl: "https://devspaces.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/#https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-openshift_telemetry_with_micrometer"
 
@@ -284,7 +284,7 @@ spec:
         replace: true
         values:
           repoName: workshop-quarkus-interacting_with_kafka
-          title: interacting_with_kafka
+          title: "Module 1 - interacting_with_kafka"
           gitlabUsername: ${{ user.entity.metadata.name }}
           devspacesUrl: "https://devspaces.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/#https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-interacting_with_kafka"
 

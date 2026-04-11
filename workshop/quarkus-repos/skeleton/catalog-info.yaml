@@ -11,6 +11,6 @@ metadata:
   annotations:
     gitlab.com/project-slug: ${{ values.gitlabUsername }}/${{ values.repoName }}
 spec:
-  type: service
+  type: workshop-lab
   lifecycle: experimental
   owner: user:default/${{ values.gitlabUsername }}

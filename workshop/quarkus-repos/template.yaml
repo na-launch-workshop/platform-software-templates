@@ -33,7 +33,7 @@ spec:
       name: Fetch hello_quarkus
       action: fetch:plain
       input:
-        url: https://github.com/na-launch-workshop/workshop-quarkus-hello_quarkus/tree/main
+        url: https://codeload.github.com/na-launch-workshop/workshop-quarkus-hello_quarkus/tar.gz/refs/heads/main
         targetPath: ./workshop-quarkus-hello_quarkus
 
     - id: publish-hello-quarkus
@@ -50,7 +50,7 @@ spec:
       name: Fetch using_camel
       action: fetch:plain
       input:
-        url: https://github.com/na-launch-workshop/workshop-quarkus-using_camel/tree/main
+        url: https://codeload.github.com/na-launch-workshop/workshop-quarkus-using_camel/tar.gz/refs/heads/main
         targetPath: ./workshop-quarkus-using_camel
 
     - id: publish-using-camel
@@ -67,7 +67,7 @@ spec:
       name: Fetch using_funqy_stateless_events
       action: fetch:plain
       input:
-        url: https://github.com/na-launch-workshop/workshop-quarkus-using_funqy_stateless_events/tree/main
+        url: https://codeload.github.com/na-launch-workshop/workshop-quarkus-using_funqy_stateless_events/tar.gz/refs/heads/main
         targetPath: ./workshop-quarkus-using_funqy_stateless_events
 
     - id: publish-funqy
@@ -84,7 +84,7 @@ spec:
       name: Fetch blue_green_deployments_openshift
       action: fetch:plain
       input:
-        url: https://github.com/na-launch-workshop/workshop-quarkus-blue_green_deployments_openshift/tree/main
+        url: https://codeload.github.com/na-launch-workshop/workshop-quarkus-blue_green_deployments_openshift/tar.gz/refs/heads/main
         targetPath: ./workshop-quarkus-blue_green_deployments_openshift
 
     - id: publish-blue-green
@@ -101,7 +101,7 @@ spec:
       name: Fetch openshift_telemetry_with_micrometer
       action: fetch:plain
       input:
-        url: https://github.com/na-launch-workshop/workshop-quarkus-openshift_telemetry_with_micrometer/tree/main
+        url: https://codeload.github.com/na-launch-workshop/workshop-quarkus-openshift_telemetry_with_micrometer/tar.gz/refs/heads/main
         targetPath: ./workshop-quarkus-openshift_telemetry_with_micrometer
 
     - id: publish-telemetry
@@ -118,7 +118,7 @@ spec:
       name: Fetch interacting_with_kafka
       action: fetch:plain
       input:
-        url: https://github.com/na-launch-workshop/workshop-quarkus-interacting_with_kafka/tree/main
+        url: https://codeload.github.com/na-launch-workshop/workshop-quarkus-interacting_with_kafka/tar.gz/refs/heads/main
         targetPath: ./workshop-quarkus-interacting_with_kafka
 
     - id: publish-kafka

@@ -11,7 +11,7 @@ metadata:
     - quarkus
     - gitlab
 spec:
-  owner: group:default/platform-team
+  owner: workshop-admins
   type: workshop
 
   parameters:

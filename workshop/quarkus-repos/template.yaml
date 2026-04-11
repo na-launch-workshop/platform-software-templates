@@ -33,7 +33,7 @@ spec:
       name: Fetch hello_quarkus
       action: fetch:plain
       input:
-        url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-hello_quarkus
+        url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-hello_quarkus/src/branch/main
         targetPath: ./workshop-quarkus-hello_quarkus
 
     - id: publish-hello-quarkus
@@ -50,7 +50,7 @@ spec:
       name: Fetch using_camel
       action: fetch:plain
       input:
-        url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-using_camel
+        url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-using_camel/src/branch/main
         targetPath: ./workshop-quarkus-using_camel
 
     - id: publish-using-camel
@@ -67,7 +67,7 @@ spec:
       name: Fetch using_funqy_stateless_events
       action: fetch:plain
       input:
-        url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-using_funqy_stateless_events
+        url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-using_funqy_stateless_events/src/branch/main
         targetPath: ./workshop-quarkus-using_funqy_stateless_events
 
     - id: publish-funqy
@@ -84,7 +84,7 @@ spec:
       name: Fetch blue_green_deployments_openshift
       action: fetch:plain
       input:
-        url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-blue_green_deployments_openshift
+        url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-blue_green_deployments_openshift/src/branch/main
         targetPath: ./workshop-quarkus-blue_green_deployments_openshift
 
     - id: publish-blue-green
@@ -101,7 +101,7 @@ spec:
       name: Fetch openshift_telemetry_with_micrometer
       action: fetch:plain
       input:
-        url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-openshift_telemetry_with_micrometer
+        url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-openshift_telemetry_with_micrometer/src/branch/main
         targetPath: ./workshop-quarkus-openshift_telemetry_with_micrometer
 
     - id: publish-telemetry
@@ -118,7 +118,7 @@ spec:
       name: Fetch interacting_with_kafka
       action: fetch:plain
       input:
-        url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-interacting_with_kafka
+        url: https://gitea.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/workshop-source/workshop-quarkus-interacting_with_kafka/src/branch/main
         targetPath: ./workshop-quarkus-interacting_with_kafka
 
     - id: publish-kafka

@@ -64,7 +64,7 @@ spec:
       input:
         repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-hello_quarkus"
         defaultBranch: main
-        repoVisibility: private
+        repoVisibility: public
         sourcePath: ./workshop-quarkus-hello_quarkus
 
     - id: register-hello-quarkus
@@ -112,7 +112,7 @@ spec:
       input:
         repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-using_camel"
         defaultBranch: main
-        repoVisibility: private
+        repoVisibility: public
         sourcePath: ./workshop-quarkus-using_camel
 
     - id: register-using-camel
@@ -160,7 +160,7 @@ spec:
       input:
         repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-using_funqy_stateless_events"
         defaultBranch: main
-        repoVisibility: private
+        repoVisibility: public
         sourcePath: ./workshop-quarkus-using_funqy_stateless_events
 
     - id: register-funqy
@@ -208,7 +208,7 @@ spec:
       input:
         repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-blue_green_deployments_openshift"
         defaultBranch: main
-        repoVisibility: private
+        repoVisibility: public
         sourcePath: ./workshop-quarkus-blue_green_deployments_openshift
 
     - id: register-blue-green
@@ -256,7 +256,7 @@ spec:
       input:
         repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-openshift_telemetry_with_micrometer"
         defaultBranch: main
-        repoVisibility: private
+        repoVisibility: public
         sourcePath: ./workshop-quarkus-openshift_telemetry_with_micrometer
 
     - id: register-telemetry
@@ -304,7 +304,7 @@ spec:
       input:
         repoUrl: "gitlab.com?owner=${{ user.entity.metadata.name }}&repo=workshop-quarkus-interacting_with_kafka"
         defaultBranch: main
-        repoVisibility: private
+        repoVisibility: public
         sourcePath: ./workshop-quarkus-interacting_with_kafka
 
     - id: register-kafka

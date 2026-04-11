@@ -52,7 +52,7 @@ spec:
       action: catalog:register
       continueOnError: true
       input:
-        catalogInfoUrl: "${{ steps['publish-hello-quarkus'].output.remoteUrl }}/-/blob/main/catalog-info.yaml"
+        catalogInfoUrl: "https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-hello_quarkus/-/blob/main/catalog-info.yaml"
 
     # ── Repo 2: using_camel ────────────────────────────────────────────────
     - id: fetch-using-camel
@@ -89,7 +89,7 @@ spec:
       action: catalog:register
       continueOnError: true
       input:
-        catalogInfoUrl: "${{ steps['publish-using-camel'].output.remoteUrl }}/-/blob/main/catalog-info.yaml"
+        catalogInfoUrl: "https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-using_camel/-/blob/main/catalog-info.yaml"
 
     # ── Repo 3: using_funqy_stateless_events ──────────────────────────────
     - id: fetch-funqy
@@ -126,7 +126,7 @@ spec:
       action: catalog:register
       continueOnError: true
       input:
-        catalogInfoUrl: "${{ steps['publish-funqy'].output.remoteUrl }}/-/blob/main/catalog-info.yaml"
+        catalogInfoUrl: "https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-using_funqy_stateless_events/-/blob/main/catalog-info.yaml"
 
     # ── Repo 4: blue_green_deployments_openshift ──────────────────────────
     - id: fetch-blue-green
@@ -163,7 +163,7 @@ spec:
       action: catalog:register
       continueOnError: true
       input:
-        catalogInfoUrl: "${{ steps['publish-blue-green'].output.remoteUrl }}/-/blob/main/catalog-info.yaml"
+        catalogInfoUrl: "https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-blue_green_deployments_openshift/-/blob/main/catalog-info.yaml"
 
     # ── Repo 5: openshift_telemetry_with_micrometer ───────────────────────
     - id: fetch-telemetry
@@ -200,7 +200,7 @@ spec:
       action: catalog:register
       continueOnError: true
       input:
-        catalogInfoUrl: "${{ steps['publish-telemetry'].output.remoteUrl }}/-/blob/main/catalog-info.yaml"
+        catalogInfoUrl: "https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-openshift_telemetry_with_micrometer/-/blob/main/catalog-info.yaml"
 
     # ── Repo 6: interacting_with_kafka ────────────────────────────────────
     - id: fetch-kafka
@@ -237,7 +237,7 @@ spec:
       action: catalog:register
       continueOnError: true
       input:
-        catalogInfoUrl: "${{ steps['publish-kafka'].output.remoteUrl }}/-/blob/main/catalog-info.yaml"
+        catalogInfoUrl: "https://gitlab.apps.rosa.rosa-bvwwp.naah.p3.openshiftapps.com/${{ user.entity.metadata.name }}/workshop-quarkus-interacting_with_kafka/-/blob/main/catalog-info.yaml"
 
   output:
     links:

@@ -12,7 +12,7 @@ metadata:
     - gitlab
 spec:
   owner: workshop-admins
-  type: workshop
+  type: service
 
   parameters:
     - title: Confirm Your GitLab Username

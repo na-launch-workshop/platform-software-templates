@@ -4,9 +4,8 @@ metadata:
   name: clone-workshop-repos
   title: Clone Workshop Repos to My GitLab
   description: >
-    Clones all 6 Quarkus workshop repositories from GitHub into your personal
-    private GitLab namespace. Run this once at the start of the workshop.
-    Safe to re-run — already-created repos are skipped automatically.
+    Welcome to the Red Hat OpenShift Workshop! This template will clone all 6 Quarkus workshop repositories into your personal GitLab namespace.
+    Each repo will be set up with a catalog entry and a DevSpaces link. (Safe to re-run — already-created repos are skipped automatically.)
   tags:
     - workshop
     - quarkus
@@ -19,8 +18,6 @@ spec:
 
   review:
       description: |
-        Welcome to the Red Hat OpenShift Workshop! This template will clone all 6 Quarkus workshop repositories into your personal GitLab namespace.
-        Each repo will be set up with a catalog entry and a DevSpaces link. (Safe to re-run — already-created repos are skipped automatically.)
         The following modules will be automatically set up for you:
         - Module 1: Hello Quarkus
         - Module 2: Using Camel

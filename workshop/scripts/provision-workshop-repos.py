@@ -64,6 +64,7 @@ metadata:
       title: Open in DevSpaces
       icon: launch
   annotations:
+    backstage.io/techdocs-ref: dir:.
     gitlab.com/project-slug: {username}/{repo_name}
 spec:
   type: workshop-lab
@@ -190,69 +191,74 @@ def create_repo(namespace_id, repo_name, gl_token):
     return resp.json()["id"]
 
 
-def copy_repo(source_url, dest_url):
+def copy_repo(source_url, dest_url, catalog_info_content):
     tmpdir = tempfile.mkdtemp()
     try:
+        work_dir = os.path.join(tmpdir, "repo")
         subprocess.run(
-            ["git", "clone", "--mirror", source_url, "repo.git"],
-            cwd=tmpdir, check=True,
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            ["git", "clone", source_url, work_dir],
+            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        # Write catalog-info.yaml into the clone
+        with open(os.path.join(work_dir, "catalog-info.yaml"), "w") as f:
+            f.write(catalog_info_content)
+        subprocess.run(
+            ["git", "add", "catalog-info.yaml"],
+            cwd=work_dir, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
         subprocess.run(
-            ["git", "push", "--mirror", dest_url],
-            cwd=os.path.join(tmpdir, "repo.git"), check=True,
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            ["git", "-c", "user.email=admin@workshop", "-c", "user.name=Workshop Admin",
+             "commit", "-m", "Add catalog-info.yaml"],
+            cwd=work_dir, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        subprocess.run(
+            ["git", "push", dest_url, "main"],
+            cwd=work_dir, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
 
-def add_catalog_info(project_id, username, repo_name, title, gl_token):
+def build_catalog_info(username, repo_name, title):
     entity_name = f"{username}-{repo_name}"
-    devspaces_url = (
-        f"{DEVSPACES_URL}/#"
-        f"{GITLAB_URL}/{username}/{repo_name}"
-    )
-    content = CATALOG_INFO_TEMPLATE.format(
+    devspaces_url = f"{DEVSPACES_URL}/#{GITLAB_URL}/{username}/{repo_name}"
+    return CATALOG_INFO_TEMPLATE.format(
         entity_name=entity_name,
         title=title,
         devspaces_url=devspaces_url,
         username=username,
         repo_name=repo_name,
     )
-    encoded = base64.b64encode(content.encode()).decode()
 
-    # Check if file already exists
-    resp = gitlab_get(
-        f"/projects/{project_id}/repository/files/catalog-info.yaml?ref=main",
-        gl_token,
+
+def update_catalog_info_via_impersonation(project_id, username, user_id, repo_name, title, gl_token):
+    """Update catalog-info.yaml using user impersonation token."""
+    # Create a short-lived impersonation token
+    resp = requests.post(
+        f"{GITLAB_URL}/api/v4/users/{user_id}/impersonation_tokens",
+        headers={"PRIVATE-TOKEN": gl_token, "Content-Type": "application/json"},
+        json={"name": "catalog-update", "scopes": ["api"], "expires_at": "2026-12-31"},
+        verify=False,
     )
-    if resp.status_code == 200:
-        # Update
-        requests.put(
-            f"{GITLAB_URL}/api/v4/projects/{project_id}/repository/files/catalog-info.yaml",
-            headers={"PRIVATE-TOKEN": gl_token, "Content-Type": "application/json"},
-            json={
-                "branch": "main",
-                "content": content,
-                "encoding": "text",
-                "commit_message": "Add catalog-info.yaml",
-            },
-            verify=False,
-        )
-    else:
-        # Create
-        requests.post(
-            f"{GITLAB_URL}/api/v4/projects/{project_id}/repository/files/catalog-info.yaml",
-            headers={"PRIVATE-TOKEN": gl_token, "Content-Type": "application/json"},
-            json={
-                "branch": "main",
-                "content": content,
-                "encoding": "text",
-                "commit_message": "Add catalog-info.yaml",
-            },
-            verify=False,
-        )
+    if resp.status_code not in (200, 201):
+        return False
+    imp_token = resp.json().get("token")
+
+    content = build_catalog_info(username, repo_name, title)
+    update = requests.put(
+        f"{GITLAB_URL}/api/v4/projects/{project_id}/repository/files/catalog-info.yaml",
+        headers={"PRIVATE-TOKEN": imp_token, "Content-Type": "application/json"},
+        json={"branch": "main", "content": content, "commit_message": "Add catalog-info.yaml"},
+        verify=False,
+    )
+    # Revoke the impersonation token
+    token_id = resp.json().get("id")
+    requests.delete(
+        f"{GITLAB_URL}/api/v4/users/{user_id}/impersonation_tokens/{token_id}",
+        headers={"PRIVATE-TOKEN": gl_token},
+        verify=False,
+    )
+    return update.status_code in (200, 201)
 
 
 def register_in_rhdh(username, repo_name, catalog_url):

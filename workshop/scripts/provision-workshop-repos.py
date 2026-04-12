@@ -168,7 +168,13 @@ def get_gitlab_user_namespace(username, gl_token):
 def repo_exists(username, repo_name, gl_token):
     path = f"{username}/{repo_name}"
     resp = gitlab_get(f"/projects/{requests.utils.quote(path, safe='')}", gl_token)
-    return resp.status_code == 200
+    if resp.status_code != 200:
+        return False
+    project = resp.json()
+    # Treat soft-deleted (pending deletion) repos as non-existent
+    if project.get("marked_for_deletion_at") or project.get("pending_delete"):
+        return False
+    return True
 
 
 def create_repo(namespace_id, repo_name, gl_token):

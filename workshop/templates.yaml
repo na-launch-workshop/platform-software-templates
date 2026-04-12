@@ -13,4 +13,3 @@ spec:
     - ./platform/groups.yaml
     - ./platform/easteregg-collection.yaml
     - ./platform/workshop-collection.yaml
-    - ./quarkus-repos/template.yaml

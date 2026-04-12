@@ -12,7 +12,7 @@ metadata:
     - gitlab
 spec:
   owner: workshop-admins
-  type: launch-team-lab
+  type: service
 
   parameters: []
 

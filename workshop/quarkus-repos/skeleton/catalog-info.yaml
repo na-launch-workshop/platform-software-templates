@@ -1,7 +1,7 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: ${{ values.repoName }}
+  name: ${{ values.gitlabUsername }}-${{ values.repoName }}
   title: ${{ values.title }}
   description: Quarkus workshop - ${{ values.title }}
   links:

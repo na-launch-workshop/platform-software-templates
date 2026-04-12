@@ -33,7 +33,7 @@ spec:
       action: catalog:fetch
       input:
         optional: true
-        entityRef: "component:default/workshop-quarkus-hello_quarkus"
+        entityRef: "component:default/${{ user.entity.metadata.name }}-workshop-quarkus-hello_quarkus"
 
     - id: fetch-hello-quarkus
       name: Fetch hello_quarkus
@@ -81,7 +81,7 @@ spec:
       action: catalog:fetch
       input:
         optional: true
-        entityRef: "component:default/workshop-quarkus-using_camel"
+        entityRef: "component:default/${{ user.entity.metadata.name }}-workshop-quarkus-using_camel"
 
     - id: fetch-using-camel
       name: Fetch using_camel
@@ -129,7 +129,7 @@ spec:
       action: catalog:fetch
       input:
         optional: true
-        entityRef: "component:default/workshop-quarkus-using_funqy_stateless_events"
+        entityRef: "component:default/${{ user.entity.metadata.name }}-workshop-quarkus-using_funqy_stateless_events"
 
     - id: fetch-funqy
       name: Fetch using_funqy_stateless_events
@@ -177,7 +177,7 @@ spec:
       action: catalog:fetch
       input:
         optional: true
-        entityRef: "component:default/workshop-quarkus-blue_green_deployments_openshift"
+        entityRef: "component:default/${{ user.entity.metadata.name }}-workshop-quarkus-blue_green_deployments_openshift"
 
     - id: fetch-blue-green
       name: Fetch blue_green_deployments_openshift
@@ -225,7 +225,7 @@ spec:
       action: catalog:fetch
       input:
         optional: true
-        entityRef: "component:default/workshop-quarkus-openshift_telemetry_with_micrometer"
+        entityRef: "component:default/${{ user.entity.metadata.name }}-workshop-quarkus-openshift_telemetry_with_micrometer"
 
     - id: fetch-telemetry
       name: Fetch openshift_telemetry_with_micrometer
@@ -273,7 +273,7 @@ spec:
       action: catalog:fetch
       input:
         optional: true
-        entityRef: "component:default/workshop-quarkus-interacting_with_kafka"
+        entityRef: "component:default/${{ user.entity.metadata.name }}-workshop-quarkus-interacting_with_kafka"
 
     - id: fetch-kafka
       name: Fetch interacting_with_kafka

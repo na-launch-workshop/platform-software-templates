@@ -258,9 +258,9 @@ def add_catalog_info(project_id, username, repo_name, title, gl_token):
 def register_in_rhdh(username, repo_name, catalog_url):
     """Insert location into RHDH postgres catalog DB via oc exec."""
     sql = f"""
-INSERT INTO locations (type, target)
-VALUES ('url', '{catalog_url}')
-ON CONFLICT (target) DO NOTHING;
+INSERT INTO locations (id, type, target)
+SELECT gen_random_uuid(), 'url', '{catalog_url}'
+WHERE NOT EXISTS (SELECT 1 FROM locations WHERE target = '{catalog_url}');
 """
     subprocess.run(
         ["oc", "exec", "-n", "backstage", "deployment/postgres",

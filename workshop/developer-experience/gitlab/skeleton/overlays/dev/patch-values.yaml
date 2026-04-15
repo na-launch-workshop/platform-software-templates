@@ -40,3 +40,5 @@ spec:
                     enabled: true
                   serverless: 
                     enabled: true
+                  shared:
+                    enabled: false

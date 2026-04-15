@@ -13,7 +13,7 @@ spec:
             source: |
               chart: rollout-controller
                 # Update targetRevision to match the latest chart version: https://github.com/na-launch-workshop/platform-charts/blob/main/charts/rollout-controller/Chart.yaml
-              targetRevision: "1.0.0"
+              targetRevision: "1.0.10"
               repoURL: https://na-launch-workshop.github.io/platform-charts
               helm:
                 values: |

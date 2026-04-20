@@ -190,6 +190,34 @@ def user_exists_in_gitea(base_url, auth, username):
     return gitea_get(base_url, auth, f"/users/{username}").status_code == 200
 
 
+def run_gitea_psql(sql):
+    result = subprocess.run(
+        ["oc", "exec", "-i", "-n", "gitea", "gitea-service-postgresql-0", "--",
+         "env", "PGPASSWORD=gitea", "psql", "-U", "gitea", "-d", "gitea"],
+        input=sql, capture_output=True, text=True, check=True,
+    )
+    return result.stdout
+
+
+def ensure_gitea_user(base_url, auth, username, keycloak_id, email):
+    """Create a Gitea user and link it to the Keycloak OAuth2 source."""
+    if user_exists_in_gitea(base_url, auth, username):
+        return
+    resp = gitea_post(base_url, auth, "/admin/users", {
+        "username": username,
+        "email": email,
+        "password": "ChangeMe123!",
+        "must_change_password": False,
+        "source_id": 0,
+        "login_name": username,
+    })
+    if resp.status_code != 201:
+        raise RuntimeError(f"Failed to create Gitea user '{username}': {resp.status_code} {resp.text}")
+    # Link to Keycloak OAuth2 source so SSO login works seamlessly
+    run_gitea_psql(
+        f"UPDATE \"user\" SET login_source=1, login_name='{keycloak_id}' WHERE lower_name='{username}';\n"
+    )
+    print(f"   CREATED Gitea user '{username}' (linked to Keycloak)")
 
 
 def repo_exists(base_url, auth, owner, name):
@@ -308,19 +336,23 @@ def main():
     kc_token = get_keycloak_token(kc_url, kc_pass)
 
     if args.user:
-        users = [args.user]
+        users = [{"username": args.user, "id": args.user, "email": f"{args.user}@workshop.local"}]
     else:
-        users = [u["username"] for u in get_developers(kc_url, kc_token)]
+        users = get_developers(kc_url, kc_token)
 
-    print(f"  Users: {users}\n")
+    print(f"  Users: {[u['username'] for u in users]}\n")
 
     # Provision
     errors = []
-    for username in users:
+    for user in users:
+        username = user["username"]
         print(f"── {username}")
 
-        if not user_exists_in_gitea(base_url, auth, username):
-            print(f"   SKIP: '{username}' not yet in Gitea (will provision after SSO login)\n")
+        try:
+            ensure_gitea_user(base_url, auth, username, user["id"], user["email"])
+        except Exception as exc:
+            print(f"   ERR creating Gitea user: {exc}\n")
+            errors.append(username)
             continue
 
         for repo in repos:

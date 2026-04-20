@@ -190,22 +190,6 @@ def user_exists_in_gitea(base_url, auth, username):
     return gitea_get(base_url, auth, f"/users/{username}").status_code == 200
 
 
-def ensure_gitea_user(base_url, auth, username, keycloak_id, email):
-    """Create the Gitea user linked to the Keycloak OAuth2 source if they don't exist yet."""
-    if user_exists_in_gitea(base_url, auth, username):
-        return
-    resp = gitea_post(base_url, auth, "/admin/users", {
-        "username": username,
-        "email": email,
-        "password": "ChangeMe123!",
-        "must_change_password": False,
-        "source_id": 1,
-        "login_name": keycloak_id,
-    })
-    if resp.status_code == 201:
-        print(f"   CREATED Gitea user '{username}'")
-    else:
-        raise RuntimeError(f"Failed to create Gitea user '{username}': {resp.status_code} {resp.text}")
 
 
 def repo_exists(base_url, auth, owner, name):
@@ -324,23 +308,19 @@ def main():
     kc_token = get_keycloak_token(kc_url, kc_pass)
 
     if args.user:
-        users = [{"username": args.user, "id": args.user, "email": f"{args.user}@workshop.local"}]
+        users = [args.user]
     else:
-        users = get_developers(kc_url, kc_token)
+        users = [u["username"] for u in get_developers(kc_url, kc_token)]
 
-    print(f"  Users: {[u['username'] for u in users]}\n")
+    print(f"  Users: {users}\n")
 
     # Provision
     errors = []
-    for user in users:
-        username = user["username"]
+    for username in users:
         print(f"── {username}")
 
-        try:
-            ensure_gitea_user(base_url, auth, username, user["id"], user["email"])
-        except Exception as exc:
-            print(f"   ERR creating Gitea user: {exc}\n")
-            errors.append(username)
+        if not user_exists_in_gitea(base_url, auth, username):
+            print(f"   SKIP: '{username}' not yet in Gitea (will provision after SSO login)\n")
             continue
 
         for repo in repos:

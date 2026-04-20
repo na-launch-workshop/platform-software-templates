@@ -35,7 +35,7 @@ import yaml
 urllib3.disable_warnings()
 
 SCRIPT_DIR     = os.path.dirname(os.path.abspath(__file__))
-KEYCLOAK_REALM = "workshop"
+KEYCLOAK_REALM = "openshift"
 KEYCLOAK_GROUP = "developers"
 KEYCLOAK_SKIP  = {"admin"}
 

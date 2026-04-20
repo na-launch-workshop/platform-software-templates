@@ -187,6 +187,24 @@ def user_exists_in_gitea(base_url, auth, username):
     return gitea_get(base_url, auth, f"/users/{username}").status_code == 200
 
 
+def ensure_gitea_user(base_url, auth, username):
+    """Create the Gitea user if they don't exist yet."""
+    if user_exists_in_gitea(base_url, auth, username):
+        return
+    resp = gitea_post(base_url, auth, "/admin/users", {
+        "username": username,
+        "email": f"{username}@workshop.local",
+        "password": "ChangeMe123!",
+        "must_change_password": False,
+        "source_id": 0,
+        "login_name": username,
+    })
+    if resp.status_code == 201:
+        print(f"   CREATED Gitea user '{username}'")
+    else:
+        raise RuntimeError(f"Failed to create Gitea user '{username}': {resp.status_code} {resp.text}")
+
+
 def repo_exists(base_url, auth, owner, name):
     return gitea_get(base_url, auth, f"/repos/{owner}/{name}").status_code == 200
 
@@ -314,8 +332,11 @@ def main():
     for username in users:
         print(f"── {username}")
 
-        if not user_exists_in_gitea(base_url, auth, username):
-            print(f"   SKIP: '{username}' not found in Gitea\n")
+        try:
+            ensure_gitea_user(base_url, auth, username)
+        except Exception as exc:
+            print(f"   ERR creating Gitea user: {exc}\n")
+            errors.append(username)
             continue
 
         for repo in repos:

@@ -85,11 +85,11 @@ spec:
               command: ["/bin/bash", "-c"]
               args:
                 - |
-                  pip install --quiet requests pyyaml urllib3 && \
+                  pip install --quiet --target /tmp/pylib requests pyyaml urllib3 && export PYTHONPATH=/tmp/pylib && \
                   curl -sL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz \
-                    | tar -xz -C /usr/local/bin oc && \
-                  git clone --depth 1 https://github.com/na-launch-workshop/platform-software-templates.git /workspace && \
-                  python3 /workspace/workshop/scripts/provision-user-repos.py
+                    | tar -xz -C /tmp oc && export PATH=/tmp:$PATH && \
+                  git clone --depth 1 https://github.com/na-launch-workshop/platform-software-templates.git /tmp/workspace && \
+                  python3 /tmp/workspace/workshop/scripts/provision-user-repos.py
 
 ---
 # Runs every minute — registers per-user catalog URLs in RHDH
@@ -116,8 +116,8 @@ spec:
               command: ["/bin/bash", "-c"]
               args:
                 - |
-                  pip install --quiet requests pyyaml urllib3 && \
+                  pip install --quiet --target /tmp/pylib requests pyyaml urllib3 && export PYTHONPATH=/tmp/pylib && \
                   curl -sL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz \
-                    | tar -xz -C /usr/local/bin oc && \
-                  git clone --depth 1 https://github.com/na-launch-workshop/platform-software-templates.git /workspace && \
-                  python3 /workspace/workshop/scripts/register-rhdh-catalog.py
+                    | tar -xz -C /tmp oc && export PATH=/tmp:$PATH && \
+                  git clone --depth 1 https://github.com/na-launch-workshop/platform-software-templates.git /tmp/workspace && \
+                  python3 /tmp/workspace/workshop/scripts/register-rhdh-catalog.py

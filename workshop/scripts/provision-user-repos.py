@@ -145,7 +145,7 @@ def get_keycloak_token(keycloak_url, password):
 
 
 def get_developers(keycloak_url, kc_token):
-    """Return list of usernames in the Keycloak developers group."""
+    """Return list of user dicts (username, id, email) in the Keycloak developers group."""
     resp = requests.get(
         f"{keycloak_url}/auth/admin/realms/{KEYCLOAK_REALM}/groups",
         headers={"Authorization": f"Bearer {kc_token}"},
@@ -164,7 +164,10 @@ def get_developers(keycloak_url, kc_token):
         verify=False,
     )
     resp.raise_for_status()
-    return [m["username"] for m in resp.json() if m["username"] not in KEYCLOAK_SKIP]
+    return [
+        {"username": m["username"], "id": m["id"], "email": m.get("email", f"{m['username']}@workshop.local")}
+        for m in resp.json() if m["username"] not in KEYCLOAK_SKIP
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -187,17 +190,17 @@ def user_exists_in_gitea(base_url, auth, username):
     return gitea_get(base_url, auth, f"/users/{username}").status_code == 200
 
 
-def ensure_gitea_user(base_url, auth, username):
-    """Create the Gitea user if they don't exist yet."""
+def ensure_gitea_user(base_url, auth, username, keycloak_id, email):
+    """Create the Gitea user linked to the Keycloak OAuth2 source if they don't exist yet."""
     if user_exists_in_gitea(base_url, auth, username):
         return
     resp = gitea_post(base_url, auth, "/admin/users", {
         "username": username,
-        "email": f"{username}@workshop.local",
+        "email": email,
         "password": "ChangeMe123!",
         "must_change_password": False,
-        "source_id": 0,
-        "login_name": username,
+        "source_id": 1,
+        "login_name": keycloak_id,
     })
     if resp.status_code == 201:
         print(f"   CREATED Gitea user '{username}'")
@@ -321,19 +324,20 @@ def main():
     kc_token = get_keycloak_token(kc_url, kc_pass)
 
     if args.user:
-        users = [args.user]
+        users = [{"username": args.user, "id": args.user, "email": f"{args.user}@workshop.local"}]
     else:
         users = get_developers(kc_url, kc_token)
 
-    print(f"  Users: {users}\n")
+    print(f"  Users: {[u['username'] for u in users]}\n")
 
     # Provision
     errors = []
-    for username in users:
+    for user in users:
+        username = user["username"]
         print(f"── {username}")
 
         try:
-            ensure_gitea_user(base_url, auth, username)
+            ensure_gitea_user(base_url, auth, username, user["id"], user["email"])
         except Exception as exc:
             print(f"   ERR creating Gitea user: {exc}\n")
             errors.append(username)

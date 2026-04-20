@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: workshop-source-repos
+  namespace: gitea
+data:
+  repos.yaml: |
+    gitea_org: developers
+    github_org: na-launch-workshop
+    repos:
+      - name: workshop-quarkus-hello_quarkus
+        title: "Module 1 - Hello Quarkus"
+
+      - name: workshop-quarkus-using_camel
+        title: "Module 2 - Using Camel"
+
+      - name: workshop-quarkus-using_funqy_stateless_events
+        title: "Module 3 - Using Funqy Stateless Events"
+
+      - name: workshop-quarkus-blue_green_deployments_openshift
+        title: "Module 4 - Blue Green Deployments OpenShift"
+
+      - name: workshop-quarkus-openshift_telemetry_with_micrometer
+        title: "Module 5 - OpenShift Telemetry With Micrometer"
+
+      - name: workshop-quarkus-interacting_with_kafka
+        title: "Module 6 - Interacting With Kafka"

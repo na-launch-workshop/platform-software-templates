@@ -170,6 +170,38 @@ def get_developers(keycloak_url, kc_token):
     ]
 
 
+def get_keycloak_user(keycloak_url, kc_token, username):
+    resp = requests.get(
+        f"{keycloak_url}/auth/admin/realms/{KEYCLOAK_REALM}/users?username={username}",
+        headers={"Authorization": f"Bearer {kc_token}"},
+        verify=False,
+    )
+    resp.raise_for_status()
+    for user in resp.json():
+        if user.get("username") == username:
+            return user
+    return None
+
+
+def ensure_keycloak_email_verified(keycloak_url, kc_token, user):
+    """Mark a Keycloak user's email as verified so SSO login is not blocked."""
+    if user.get("emailVerified"):
+        return
+
+    user = dict(user)
+    user["emailVerified"] = True
+    resp = requests.put(
+        f"{keycloak_url}/auth/admin/realms/{KEYCLOAK_REALM}/users/{user['id']}",
+        headers={
+            "Authorization": f"Bearer {kc_token}",
+            "Content-Type": "application/json",
+        },
+        json=user,
+        verify=False,
+    )
+    resp.raise_for_status()
+
+
 # ---------------------------------------------------------------------------
 # Gitea API helpers
 # ---------------------------------------------------------------------------
@@ -336,7 +368,15 @@ def main():
     kc_token = get_keycloak_token(kc_url, kc_pass)
 
     if args.user:
-        users = [{"username": args.user, "id": args.user, "email": f"{args.user}@workshop.local"}]
+        kc_user = get_keycloak_user(kc_url, kc_token, args.user)
+        if not kc_user:
+            sys.exit(f"Keycloak user '{args.user}' not found")
+        users = [{
+            "username": kc_user["username"],
+            "id": kc_user["id"],
+            "email": kc_user.get("email", f"{kc_user['username']}@workshop.local"),
+            "emailVerified": kc_user.get("emailVerified", False),
+        }]
     else:
         users = get_developers(kc_url, kc_token)
 
@@ -347,6 +387,13 @@ def main():
     for user in users:
         username = user["username"]
         print(f"── {username}")
+
+        try:
+            ensure_keycloak_email_verified(kc_url, kc_token, user)
+        except Exception as exc:
+            print(f"   ERR verifying Keycloak email: {exc}\n")
+            errors.append(username)
+            continue
 
         try:
             ensure_gitea_user(base_url, auth, username, user["id"], user["email"])

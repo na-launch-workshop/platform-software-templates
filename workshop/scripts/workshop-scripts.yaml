@@ -65,7 +65,7 @@ subjects:
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: provision-user-repos
+  name: provision-user-repos-gitea
   namespace: workshop-helpers
 spec:
   schedule: "*/1 * * * *"
@@ -89,14 +89,14 @@ spec:
                   curl -sL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz \
                     | tar -xz -C /tmp oc && export PATH=/tmp:$PATH && \
                   git clone --depth 1 https://github.com/na-launch-workshop/platform-software-templates.git /tmp/workspace && \
-                  python3 /tmp/workspace/workshop/scripts/provision-user-repos.py
+                  python3 /tmp/workspace/workshop/scripts/provision-user-repos-gitea.py
 
 ---
 # Runs every minute — registers per-user catalog URLs in RHDH
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: register-rhdh-catalog
+  name: register-rhdh-catalog-gitea
   namespace: workshop-helpers
 spec:
   schedule: "*/1 * * * *"
@@ -120,4 +120,4 @@ spec:
                   curl -sL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz \
                     | tar -xz -C /tmp oc && export PATH=/tmp:$PATH && \
                   git clone --depth 1 https://github.com/na-launch-workshop/platform-software-templates.git /tmp/workspace && \
-                  python3 /tmp/workspace/workshop/scripts/register-rhdh-catalog.py
+                  python3 /tmp/workspace/workshop/scripts/register-rhdh-catalog-gitea.py

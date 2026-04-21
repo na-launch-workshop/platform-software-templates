@@ -8,8 +8,8 @@ Reads GitLab admin token from the cluster deployment (requires oc login).
 Credential resolution order:
   1. CLI args (--token)
   2. Environment variable (GITLAB_TOKEN)
-  3. Live cluster - reads GITLAB_ADMIN_TOKEN from the gitlab-service deployment
-     in the gitlab namespace
+  3. Live cluster - reads common GitLab deployment env vars or secrets
+  4. Live cluster - falls back to a short-lived OAuth token for root
 
 Usage:
   python3 migrate-to-gitlab.py --gitlab-url https://gitlab.apps.example.com
@@ -22,6 +22,7 @@ Options:
 """
 
 import argparse
+import base64
 import json
 import os
 import shutil
@@ -39,33 +40,77 @@ urllib3.disable_warnings()
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def get_token_from_cluster():
-    """Read GITLAB_ADMIN_TOKEN from the gitlab-service deployment in the gitlab namespace."""
-    try:
-        result = subprocess.run(
-            ["oc", "get", "deployment", "gitlab-service", "-n", "gitlab",
-             "-o", "jsonpath={.spec.template.spec.containers}"],
-            capture_output=True, text=True, check=True,
-        )
-        containers = json.loads(result.stdout)
-        for container in containers:
-            for env in container.get("env", []):
-                if env.get("name") == "GITLAB_ADMIN_TOKEN":
-                    return env.get("value")
-    except Exception:
-        pass
+def get_token_from_cluster(base_url):
+    """Read an admin-capable GitLab API token from the cluster."""
+    errors = []
 
-    # Fallback: try reading from a secret
+    deployment_candidates = (
+        ("gitlab", "gitlab-service"),
+        ("gitlab-system", "gitlab-webservice-default"),
+    )
+    env_var_names = {"GITLAB_ADMIN_TOKEN", "GITLAB_TOKEN"}
+
+    for namespace, deployment in deployment_candidates:
+        try:
+            result = subprocess.run(
+                ["oc", "get", "deployment", deployment, "-n", namespace,
+                 "-o", "jsonpath={.spec.template.spec.containers}"],
+                capture_output=True, text=True, check=True,
+            )
+            containers = json.loads(result.stdout)
+            for container in containers:
+                for env in container.get("env", []):
+                    if env.get("name") in env_var_names and env.get("value"):
+                        return env["value"]
+        except Exception as exc:
+            errors.append(f"deployment {namespace}/{deployment}: {exc}")
+
     try:
         result = subprocess.run(
-            ["oc", "get", "secret", "gitlab-admin-token", "-n", "gitlab",
-             "-o", "jsonpath={.data.token}"],
+            ["oc", "get", "secret", "gitlab-gitlab-initial-root-password",
+             "-n", "gitlab-system", "-o", "jsonpath={.data.password}"],
             capture_output=True, text=True, check=True,
         )
-        import base64
-        return base64.b64decode(result.stdout.strip()).decode()
+        password = base64.b64decode(result.stdout.strip()).decode()
+        resp = requests.post(
+            f"{base_url}/oauth/token",
+            data={
+                "grant_type": "password",
+                "username": "root",
+                "password": password,
+                "scope": "api read_user read_repository write_repository",
+            },
+            verify=False,
+        )
+        resp.raise_for_status()
+        access_token = resp.json().get("access_token")
+        if access_token:
+            return access_token
     except Exception as exc:
-        sys.exit(f"Failed to read token from cluster: {exc}")
+        errors.append(f"root oauth token: {exc}")
+
+    secret_candidates = (
+        ("gitlab", "gitlab-admin-token", ("token",)),
+        ("gitlab-system", "gitlab-group-access-pat", ("GITLAB_TOKEN", "token")),
+        ("backstage", "gitlab-token", ("GITLAB_TOKEN", "token")),
+    )
+
+    for namespace, secret, keys in secret_candidates:
+        for key in keys:
+            try:
+                result = subprocess.run(
+                    ["oc", "get", "secret", secret, "-n", namespace,
+                     "-o", f"jsonpath={{.data.{key}}}"],
+                    capture_output=True, text=True, check=True,
+                )
+                token = result.stdout.strip()
+                if token:
+                    return base64.b64decode(token).decode()
+            except Exception as exc:
+                errors.append(f"secret {namespace}/{secret} key {key}: {exc}")
+
+    joined = "; ".join(errors)
+    sys.exit(f"Failed to read token from cluster. Tried common deployments and secrets. Details: {joined}")
 
 
 def load_configmap(path):
@@ -75,7 +120,12 @@ def load_configmap(path):
 
 
 def gl_headers(token):
-    return {"PRIVATE-TOKEN": token, "Content-Type": "application/json"}
+    headers = {"Content-Type": "application/json"}
+    if token.startswith("glpat-"):
+        headers["PRIVATE-TOKEN"] = token
+    else:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
 
 
 def gl_get(base_url, token, path):
@@ -84,6 +134,10 @@ def gl_get(base_url, token, path):
 
 def gl_post(base_url, token, path, data):
     return requests.post(f"{base_url}/api/v4{path}", headers=gl_headers(token), json=data, verify=False)
+
+
+def gl_delete(base_url, token, path):
+    return requests.delete(f"{base_url}/api/v4{path}", headers=gl_headers(token), verify=False)
 
 
 def ensure_group(base_url, token, group_path):
@@ -117,6 +171,14 @@ def project_exists(base_url, token, group_path, name):
     return gl_get(base_url, token, f"/projects/{encoded}").status_code == 200
 
 
+def get_project_id(base_url, token, group_path, name):
+    encoded = quote(f"{group_path}/{name}", safe="")
+    resp = gl_get(base_url, token, f"/projects/{encoded}")
+    if resp.status_code == 200:
+        return resp.json()["id"]
+    return None
+
+
 def create_project(base_url, token, group_id, name):
     resp = gl_post(base_url, token, "/projects", {
         "name": name,
@@ -128,6 +190,15 @@ def create_project(base_url, token, group_id, name):
     })
     if resp.status_code not in (200, 201):
         raise RuntimeError(f"{resp.status_code} {resp.text}")
+    return resp.json()["id"]
+
+
+def ensure_branch_unprotected(base_url, token, project_id, branch="main"):
+    """Remove default branch protection so workshop users can push directly."""
+    encoded_branch = quote(branch, safe="")
+    resp = gl_delete(base_url, token, f"/projects/{project_id}/protected_branches/{encoded_branch}")
+    if resp.status_code not in (204, 404):
+        raise RuntimeError(f"failed to unprotect {branch}: {resp.status_code} {resp.text}")
 
 
 def mirror_repo(github_url, gitlab_push_url):
@@ -154,10 +225,12 @@ def main():
     if not os.path.exists(args.configmap):
         sys.exit(f"ConfigMap file not found: {args.configmap}")
 
+    base_url = args.gitlab_url.rstrip("/")
+
     token = args.token
     if not token:
         print("No token provided — reading from cluster...")
-        token = get_token_from_cluster()
+        token = get_token_from_cluster(base_url)
         if not token:
             sys.exit("Could not read token from cluster.")
         print("  token: (loaded from cluster)\n")
@@ -166,8 +239,6 @@ def main():
     group_path = args.group or config.get("gitea_org", "developers")
     github_org = config.get("github_org", "na-launch-workshop")
     repos      = config.get("repos", [])
-
-    base_url = args.gitlab_url.rstrip("/")
 
     print(f"GitLab:     {base_url}")
     print(f"Group:      {group_path}")
@@ -193,10 +264,6 @@ def main():
         print(f"── {name}")
         print(f"   {title}")
 
-        if not args.dry_run and project_exists(base_url, token, group_path, name):
-            print(f"   SKIP: already exists\n")
-            continue
-
         github_url = f"https://github.com/{github_org}/{name}.git"
 
         if args.dry_run:
@@ -205,7 +272,14 @@ def main():
             continue
 
         try:
-            create_project(base_url, token, group_id, name)
+            existing_project_id = get_project_id(base_url, token, group_path, name)
+            if existing_project_id:
+                ensure_branch_unprotected(base_url, token, existing_project_id)
+                print(f"   SKIP: already exists\n")
+                continue
+
+            project_id = create_project(base_url, token, group_id, name)
+            ensure_branch_unprotected(base_url, token, project_id)
             mirror_repo(github_url, f"{parsed}/{group_path}/{name}.git")
             print(f"   OK\n")
         except Exception as exc:

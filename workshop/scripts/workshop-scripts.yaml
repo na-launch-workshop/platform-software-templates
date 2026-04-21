@@ -59,3 +59,30 @@ subjects:
   - kind: ServiceAccount
     name: workshop-helpers
     namespace: workshop-helpers
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: provision-user-repos-gitlab
+  namespace: workshop-helpers
+spec:
+  schedule: "*/1 * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: workshop-helpers
+          restartPolicy: OnFailure
+          containers:
+            - name: provision
+              image: python:3.11
+              command: ["/bin/bash", "-c"]
+              args:
+                - |
+                  pip install --quiet --target /tmp/pylib requests pyyaml urllib3 && export PYTHONPATH=/tmp/pylib && \
+                  curl -sL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz \
+                    | tar -xz -C /tmp oc && export PATH=/tmp:$PATH && \
+                  git clone --depth 1 https://github.com/na-launch-workshop/platform-software-templates.git /tmp/workspace && \
+                  python3 /tmp/workspace/workshop/scripts/provision-user-repos-gitlab.py

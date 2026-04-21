@@ -40,6 +40,15 @@ urllib3.disable_warnings()
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+def get_gitlab_url():
+    result = subprocess.run(
+        ["oc", "get", "route", "gitlab", "-n", "gitlab-system",
+         "-o", "jsonpath={.spec.host}"],
+        capture_output=True, text=True, check=True,
+    )
+    return f"https://{result.stdout.strip()}"
+
+
 def get_token_from_cluster(base_url):
     """Read an admin-capable GitLab API token from the cluster."""
     errors = []
@@ -213,19 +222,17 @@ def mirror_repo(github_url, gitlab_push_url):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--gitlab-url", default=os.environ.get("GITLAB_URL"),   help="GitLab base URL")
+    parser.add_argument("--gitlab-url", default=None, help="GitLab base URL (default: read from cluster route)")
     parser.add_argument("--token",      default=os.environ.get("GITLAB_TOKEN"), help="GitLab admin personal access token (optional, reads from cluster if omitted)")
     parser.add_argument("--group",      default=None,                            help="GitLab group path (overrides ConfigMap)")
     parser.add_argument("--configmap",  default=os.path.join(SCRIPT_DIR, "repos-configmap.yaml"), help="Path to ConfigMap YAML")
     parser.add_argument("--dry-run",    action="store_true",                     help="Print actions without executing")
     args = parser.parse_args()
 
-    if not args.gitlab_url:
-        sys.exit("--gitlab-url or GITLAB_URL is required")
     if not os.path.exists(args.configmap):
         sys.exit(f"ConfigMap file not found: {args.configmap}")
 
-    base_url = args.gitlab_url.rstrip("/")
+    base_url = args.gitlab_url.rstrip("/") if args.gitlab_url else get_gitlab_url()
 
     token = args.token
     if not token:

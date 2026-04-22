@@ -8,20 +8,20 @@ data:
     gitea_org: developers
     github_org: na-launch-workshop
     repos:
-      - name: workshop-quarkus-hello_quarkus
-        title: "Module 1 - Hello Quarkus"
+      - name: workshop-devhub-kick-off-scaffolder
+        title: "Module 1 - Workshop Devhub Kick Off Scaffolder"
 
-      - name: workshop-quarkus-using_camel
-        title: "Module 2 - Using Camel"
+      - name: workshop-quarkus-hello-quarkus
+        title: "Module 2 - Workshop Quarkus Hello Quarkus"
 
-      - name: workshop-quarkus-using_funqy_stateless_events
-        title: "Module 3 - Using Funqy Stateless Events"
+      - name: workshop-quarkus-using-camel
+        title: "Module 3 - Workshop Quarkus Using Camel"
 
-      - name: workshop-quarkus-blue_green_deployments_openshift
-        title: "Module 4 - Blue Green Deployments OpenShift"
+      - name: workshop-quarkus-using-funqy-stateless-events
+        title: "Module 4 - Workshop Quarkus Using Funqy Stateless Events"
 
-      - name: workshop-quarkus-openshift_telemetry_with_micrometer
-        title: "Module 5 - OpenShift Telemetry With Micrometer"
+      - name: workshop-quarkus-openshift-telemetry-with-micrometer
+        title: "Module 5 - Workshop Quarkus Openshift Telemetry With Micrometer"
 
-      - name: workshop-quarkus-interacting_with_kafka
-        title: "Module 6 - Interacting With Kafka"
+      - name: workshop-rhoai-models-as-a-service
+        title: "Module 6 - Workshop Rhoai Models As A Service"

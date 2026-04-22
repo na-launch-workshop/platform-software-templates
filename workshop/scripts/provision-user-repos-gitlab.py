@@ -372,36 +372,87 @@ def ensure_branch_unprotected(base_url, token, project_id, branch="main"):
 # Git helper
 # ---------------------------------------------------------------------------
 
-def clone_push_with_catalog_info(source_url, dest_url, catalog_info_content):
-    """Clone source, add catalog-info.yaml, push to destination."""
+def update_catalog_info(repo_path, username, repo_name, base_url, devspaces_url):
+    """
+    Update catalog-info.yaml in place without touching any other formatting.
+    Changes only:
+      - metadata.name       → {username}-{repo_name}
+      - source-location     → url:{base_url}/{username}/{repo_name}
+      - Dev Spaces link url → {devspaces_url}/#{base_url}/{username}/{repo_name}
+      - spec.owner          → user:default/{username}
+    """
+    import re
+    catalog_path = os.path.join(repo_path, "catalog-info.yaml")
+    repo_url = f"{base_url}/{username}/{repo_name}"
+
+    with open(catalog_path) as f:
+        lines = f.readlines()
+
+    in_metadata = False
+    metadata_name_set = False
+
+    for i, line in enumerate(lines):
+        stripped = line.rstrip()
+
+        # Track metadata section
+        if re.match(r"^metadata:\s*$", stripped):
+            in_metadata = True
+        elif re.match(r"^[a-z]", stripped) and not stripped.startswith("metadata"):
+            in_metadata = False
+
+        # metadata.name (first `name:` inside metadata block)
+        if in_metadata and not metadata_name_set and re.match(r"^\s+name:\s*", stripped):
+            indent = len(line) - len(line.lstrip())
+            lines[i] = " " * indent + f"name: {username}-{repo_name}\n"
+            metadata_name_set = True
+
+        # backstage.io/source-location annotation
+        elif "backstage.io/source-location:" in stripped:
+            indent = len(line) - len(line.lstrip())
+            lines[i] = " " * indent + f"backstage.io/source-location: url:{repo_url}\n"
+
+        # Dev Spaces link url (line before `title: Open in Dev Spaces`)
+        elif i + 1 < len(lines) and "Open in Dev Spaces" in lines[i + 1]:
+            indent = len(line) - len(line.lstrip())
+            lines[i] = " " * indent + f"url: {devspaces_url}/#{repo_url}\n"
+
+        # spec.owner
+        elif re.match(r"^\s+owner:\s*", stripped):
+            indent = len(line) - len(line.lstrip())
+            lines[i] = " " * indent + f"owner: user:default/{username}\n"
+
+    with open(catalog_path, "w") as f:
+        f.writelines(lines)
+
+
+def clone_push_with_catalog_info(source_url, dest_url, username, repo_name, base_url, devspaces_url):
+    """Clone source, update catalog-info.yaml fields, push to destination."""
     tmpdir = tempfile.mkdtemp()
     try:
         repo = os.path.join(tmpdir, "repo")
         subprocess.run(["git", "clone", source_url, repo], check=True)
-        with open(os.path.join(repo, "catalog-info.yaml"), "w") as f:
-            f.write(catalog_info_content)
+        update_catalog_info(repo, username, repo_name, base_url, devspaces_url)
         subprocess.run(["git", "add", "catalog-info.yaml"], cwd=repo, check=True)
         subprocess.run(["git", "-c", "user.name=SysAdmin", "-c", "user.email=sys@admin.com",
-                        "commit", "-m", "Add catalog-info.yaml"], cwd=repo, check=True)
+                        "commit", "-m", "Update catalog-info.yaml for user"], cwd=repo, check=True)
         subprocess.run(["git", "remote", "set-url", "origin", dest_url], cwd=repo, check=True)
         subprocess.run(["git", "push", "origin", "main", "--force"], cwd=repo, check=True)
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
 
-def update_catalog_info_via_git(repo_url, catalog_info_content):
-    """Clone existing repo, update catalog-info.yaml, push back."""
+def update_catalog_info_via_git(repo_url, username, repo_name, base_url, devspaces_url):
+    """Clone existing user repo, update catalog-info.yaml fields, push back."""
     tmpdir = tempfile.mkdtemp()
     try:
         repo = os.path.join(tmpdir, "repo")
         subprocess.run(["git", "clone", repo_url, repo], check=True)
-        with open(os.path.join(repo, "catalog-info.yaml"), "w") as f:
-            f.write(catalog_info_content)
+        update_catalog_info(repo, username, repo_name, base_url, devspaces_url)
         subprocess.run(["git", "add", "catalog-info.yaml"], cwd=repo, check=True)
         result = subprocess.run(["git", "-c", "user.name=SysAdmin", "-c", "user.email=sys@admin.com",
-                                  "commit", "-m", "Update catalog-info.yaml"], cwd=repo, capture_output=True, text=True)
+                                  "commit", "-m", "Update catalog-info.yaml for user"], cwd=repo, capture_output=True, text=True)
         if result.returncode != 0 and "nothing to commit" in result.stdout + result.stderr:
-            return  # already up to date
+            return
         result.check_returncode()
         subprocess.run(["git", "push"], cwd=repo, check=True)
     finally:
@@ -517,16 +568,7 @@ def main():
             continue
 
         for repo in repos:
-            name  = repo.get("name")
-            title = repo.get("title", name)
-
-            catalog_info = CATALOG_INFO_TEMPLATE.format(
-                entity_name=f"{username}-{name}",
-                title=title,
-                username=username,
-                repo_url=f"{base_url}/{username}/{name}",
-                devspaces_url=devspaces_url,
-            )
+            name = repo.get("name")
 
             if project_exists(base_url, token, username, name):
                 print(f"   SKIP {name} (already exists, updating catalog-info)")
@@ -535,7 +577,7 @@ def main():
                         project_id = get_project_id(base_url, token, username, name)
                         if project_id:
                             ensure_branch_unprotected(base_url, token, project_id)
-                        update_catalog_info_via_git(f"{push_base}/{username}/{name}.git", catalog_info)
+                        update_catalog_info_via_git(f"{push_base}/{username}/{name}.git", username, name, base_url, devspaces_url)
                     except Exception as exc:
                         print(f"   ERR updating catalog-info: {exc}")
                         errors.append(f"{username}/{name}")
@@ -551,7 +593,7 @@ def main():
             try:
                 project_id = create_user_project(base_url, token, namespace_id, name)
                 ensure_branch_unprotected(base_url, token, project_id)
-                clone_push_with_catalog_info(source_url, dest_url, catalog_info)
+                clone_push_with_catalog_info(source_url, dest_url, username, name, base_url, devspaces_url)
                 print(f"   OK  {name}")
             except Exception as exc:
                 print(f"   ERR {name}: {exc}")

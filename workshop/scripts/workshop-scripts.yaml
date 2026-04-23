@@ -86,3 +86,17 @@ spec:
                     | tar -xz -C /tmp oc && export PATH=/tmp:$PATH && \
                   git clone --depth 1 https://github.com/na-launch-workshop/platform-software-templates.git /tmp/workspace && \
                   python3 /tmp/workspace/workshop/scripts/provision-user-repos-gitlab.py
+
+
+
+
+
+#   ------------------------------------------------
+#   TO USE
+#   oc apply -f ./workshop-scripts.yaml
+
+#   TO REMOVE
+#   oc delete namespace workshop-helpers
+#   oc delete clusterrole workshop-helpers
+#   oc delete clusterrolebinding workshop-helpers
+#   ------------------------------------------------

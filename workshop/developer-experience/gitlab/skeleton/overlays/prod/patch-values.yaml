@@ -38,6 +38,8 @@ spec:
                     enabled: true
                   minio:
                     enabled: true
+                  rhoai:
+                    enabled: ${{ values.rhoai.enableRhoai }}
                   serverless: 
                     enabled: true
                   shared:

@@ -41,6 +41,16 @@ spec:
               default: workshop-repository
               description: Repository name used to initialize workshop
 
+        rhoai:
+          type: object
+          title: Red Hat OpenShift AI
+          properties:
+            enableRhoai:
+              title: Enable OpenShift AI?
+              type: boolean
+              default: false
+              description: Toggle to provision OpenShift AI workshop
+
         devspaces:
           type: object
           title: DevSpaces Dedicated Capacity

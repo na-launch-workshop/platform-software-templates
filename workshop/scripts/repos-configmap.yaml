@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: workshop-source-repos
-  namespace: gitea
+  namespace: gitlab-system
 data:
   repos.yaml: |
     gitea_org: developers

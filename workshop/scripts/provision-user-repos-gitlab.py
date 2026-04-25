@@ -36,7 +36,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from urllib.parse import quote, urlparse
+from urllib.parse import quote
 
 import requests
 import urllib3
@@ -265,12 +265,6 @@ def gl_delete(base_url, token, path):
     return requests.delete(f"{base_url}/api/v4{path}", headers=gl_headers(token), verify=False)
 
 
-def gl_list(base_url, token, path):
-    resp = gl_get(base_url, token, path)
-    resp.raise_for_status()
-    return resp.json()
-
-
 def get_gitlab_user(base_url, token, username):
     """Return GitLab user dict or None if not found."""
     resp = gl_get(base_url, token, f"/users?username={username}")
@@ -352,38 +346,6 @@ def ensure_branch_unprotected(base_url, token, project_id, branch="main"):
         raise RuntimeError(f"failed to unprotect {branch}: {resp.status_code} {resp.text}")
 
 
-def _managed_hook_candidate(hook_url: str) -> bool:
-    parsed = urlparse(hook_url)
-    return parsed.scheme in {"http", "https"} and parsed.netloc.startswith("gitlab-webhook-hello-")
-
-
-def ensure_project_webhook(base_url, token, project_id, webhook_url, webhook_secret=None):
-    """Create or update one managed push webhook for this specific project."""
-    desired = {
-        "url": webhook_url,
-        "push_events": True,
-        "enable_ssl_verification": True,
-    }
-    if webhook_secret:
-        desired["token"] = webhook_secret
-
-    hooks = gl_list(base_url, token, f"/projects/{project_id}/hooks")
-    exact = next((hook for hook in hooks if hook.get("url") == webhook_url), None)
-    managed = next((hook for hook in hooks if _managed_hook_candidate(hook.get("url", ""))), None)
-    target = exact or managed
-
-    if target:
-        resp = gl_put(base_url, token, f"/projects/{project_id}/hooks/{target['id']}", desired)
-        if resp.status_code not in (200, 201):
-            raise RuntimeError(f"failed to update webhook: {resp.status_code} {resp.text}")
-        return "updated" if target is managed and not exact else "verified"
-
-    resp = gl_post(base_url, token, f"/projects/{project_id}/hooks", desired)
-    if resp.status_code not in (200, 201):
-        raise RuntimeError(f"failed to create webhook: {resp.status_code} {resp.text}")
-    return "created"
-
-
 # ---------------------------------------------------------------------------
 # Git helper
 # ---------------------------------------------------------------------------
@@ -448,29 +410,6 @@ def patch_catalog_info_in_cloned_user_repo(
         result.check_returncode()
         subprocess.run(["git", "push"], cwd=repo, check=True)
         return True
-    finally:
-        shutil.rmtree(tmpdir, ignore_errors=True)
-
-
-def bootstrap_repo_tekton(repo_url: str, namespace: str) -> str | None:
-    """
-    Bootstrap namespace-local Tekton resources from a provisioned repo if it ships
-    a bootstrap script. Returns the webhook route URL when available.
-    """
-    tmpdir = tempfile.mkdtemp()
-    try:
-        repo = os.path.join(tmpdir, "repo")
-        subprocess.run(["git", "clone", "--depth", "1", repo_url, repo], check=True)
-        script = os.path.join(repo, "scripts", "bootstrap-devspace.sh")
-        if not os.path.isfile(script):
-            return None
-        subprocess.run(["bash", script, namespace], cwd=repo, check=True, capture_output=True, text=True)
-        result = subprocess.run(
-            ["oc", "get", "route", "gitlab-webhook-hello", "-n", namespace,
-             "-o", "jsonpath=https://{.spec.host}{\"\\n\"}"],
-            capture_output=True, text=True, check=True,
-        )
-        return result.stdout.strip() or None
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
@@ -554,9 +493,6 @@ def main():
     catalog_patched = []   # f"{user}/repo" — existing project; catalog-info commit pushed
     dry_would_clone = []  # dry-run only: would create
     dry_skip_existing = []  # dry-run only: would patch + push
-    tekton_bootstrapped = []
-    webhook_ensured = []
-    warnings = []
 
     for user in users:
         username = user["username"]
@@ -613,28 +549,6 @@ def main():
                 except Exception as exc:
                     print(f"   ERR catalog-info: {exc}")
                     errors.append(f"{username}/{name}")
-                    continue
-
-                try:
-                    if project_id:
-                        namespace = f"{username}-devspaces"
-                        webhook_url = bootstrap_repo_tekton(f"{push_base}/{username}/{name}.git", namespace)
-                        if webhook_url:
-                            tekton_bootstrapped.append(f"{username}/{name}")
-                            action = ensure_project_webhook(
-                                base_url,
-                                token,
-                                project_id,
-                                webhook_url,
-                                os.environ.get("GITLAB_WEBHOOK_SECRET"),
-                            )
-                            webhook_ensured.append(f"{username}/{name} ({action})")
-                        else:
-                            print(f"   INFO no Tekton bootstrap assets in {username}/{name} — skipping webhook setup")
-                except Exception as exc:
-                    msg = f"{username}/{name}: Tekton/webhook bootstrap failed: {exc}"
-                    print(f"   WARN {msg}")
-                    warnings.append(msg)
                 continue
 
             if args.dry_run:
@@ -649,25 +563,6 @@ def main():
                 project_id = create_user_project(base_url, token, namespace_id, name)
                 ensure_branch_unprotected(base_url, token, project_id)
                 clone_push_with_catalog_info(source_url, dest_url, username, name, source_group)
-                try:
-                    namespace = f"{username}-devspaces"
-                    webhook_url = bootstrap_repo_tekton(dest_url, namespace)
-                    if webhook_url:
-                        tekton_bootstrapped.append(f"{username}/{name}")
-                        action = ensure_project_webhook(
-                            base_url,
-                            token,
-                            project_id,
-                            webhook_url,
-                            os.environ.get("GITLAB_WEBHOOK_SECRET"),
-                        )
-                        webhook_ensured.append(f"{username}/{name} ({action})")
-                    else:
-                        print(f"   INFO no Tekton bootstrap assets in {username}/{name} — skipping webhook setup")
-                except Exception as exc:
-                    msg = f"{username}/{name}: Tekton/webhook bootstrap failed: {exc}"
-                    print(f"   WARN {msg}")
-                    warnings.append(msg)
                 print(f"   OK  {name}")
                 newly_provisioned.append(f"{username}/{name}")
             except Exception as exc:
@@ -701,18 +596,6 @@ def main():
                     print(f"    {ref}")
             if not newly_provisioned and not catalog_patched:
                 print("  (no successful repo operations)")
-            if tekton_bootstrapped:
-                print(f"  Tekton bootstrapped ({len(tekton_bootstrapped)}):")
-                for ref in tekton_bootstrapped:
-                    print(f"    {ref}")
-            if webhook_ensured:
-                print(f"  Webhooks ensured ({len(webhook_ensured)}):")
-                for ref in webhook_ensured:
-                    print(f"    {ref}")
-            if warnings:
-                print(f"  Warnings ({len(warnings)}):")
-                for warning in warnings:
-                    print(f"    {warning}")
 
     print_summary(args.dry_run)
 

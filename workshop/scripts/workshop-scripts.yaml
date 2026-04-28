@@ -97,7 +97,7 @@ metadata:
   name: bootstrap-devspaces-namespaces
   namespace: workshop-helpers
 spec:
-  schedule: "*/1 * * * *"
+  schedule: "*/2 * * * *"
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:

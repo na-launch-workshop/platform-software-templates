@@ -4,10 +4,9 @@ Bootstrap resources into Dev Spaces user namespaces.
 
 This script is intended to run repeatedly, for example from a CronJob. It:
   - discovers Dev Spaces namespaces created by Che
-  - skips namespaces already marked as bootstrapped
   - renders YAML manifests with simple per-user substitutions
   - applies the rendered manifests into each namespace
-  - annotates the namespace when bootstrapping succeeds
+  - annotates the namespace when reconciliation succeeds
 
 Template variables available in YAML files:
   ${USERNAME}                  Dev Spaces username from che.eclipse.org/username
@@ -155,7 +154,7 @@ def parse_args():
     parser.add_argument(
         "--annotation-key",
         default=DEFAULT_BOOTSTRAP_ANNOTATION,
-        help=f"Namespace annotation used to mark bootstrap completion. Default: {DEFAULT_BOOTSTRAP_ANNOTATION}",
+        help=f"Namespace annotation written after a successful reconciliation. Default: {DEFAULT_BOOTSTRAP_ANNOTATION}",
     )
     parser.add_argument(
         "--annotation-value",
@@ -167,11 +166,6 @@ def parse_args():
         action="append",
         default=[],
         help="Only process the given Dev Spaces username. Repeat for multiple users.",
-    )
-    parser.add_argument(
-        "--include-bootstrapped",
-        action="store_true",
-        help="Re-apply resources even if the bootstrap annotation is already present.",
     )
     parser.add_argument(
         "--dry-run",
@@ -203,15 +197,10 @@ def main():
             skipped += 1
             continue
 
-        if (
-            namespace.bootstrap_state == args.annotation_value
-            and not args.include_bootstrapped
-        ):
-            print(f"SKIP {namespace.name}: already bootstrapped")
-            skipped += 1
-            continue
-
-        print(f"BOOTSTRAP {namespace.name} (user={namespace.username})")
+        action = "RECONCILE"
+        if namespace.bootstrap_state != args.annotation_value:
+            action = "BOOTSTRAP"
+        print(f"{action} {namespace.name} (user={namespace.username})")
         bootstrap_namespace(
             namespace,
             files,

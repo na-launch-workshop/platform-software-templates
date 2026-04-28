@@ -14,6 +14,9 @@ data:
       - name: workshop-quarkus-hello-quarkus
         title: "Module 2 - Workshop Quarkus Hello Quarkus"
 
+      - name: workshop-springboot-hello_by_lang
+        title: "Module 2 - Workshop Spring Boot Hello By Language"
+
       - name: workshop-quarkus-using-camel
         title: "Module 3 - Workshop Quarkus Using Camel"
 

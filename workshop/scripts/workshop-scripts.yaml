@@ -115,12 +115,20 @@ spec:
               args:
                 - |
                   HELM_VERSION="v3.16.4" && \
+                  GITLAB_URL="https://gitlab.apps.rosa.rosa-w67wp.bhg0.p3.openshiftapps.com" && \
                   curl -sL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz \
                     | tar -xz -C /tmp oc && export PATH=/tmp:$PATH && \
                   curl -sL "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz" \
                     | tar -xz -C /tmp && mv /tmp/linux-amd64/helm /tmp/helm && export PATH=/tmp:$PATH && \
                   git clone --depth 1 https://github.com/na-launch-workshop/platform-software-templates.git /tmp/workspace && \
-                  git clone --depth 1 https://gitlab.apps.rosa.rosa-w67wp.bhg0.p3.openshiftapps.com/developers/workshop-quarkus-using-camel.git /tmp/workshop-quarkus-using-camel && \
+                  GITLAB_PASSWORD="$(oc get secret gitlab-gitlab-initial-root-password -n gitlab-system -o jsonpath='{.data.password}' | base64 -d)" && \
+                  GITLAB_TOKEN="$(curl -sk -X POST "${GITLAB_URL}/oauth/token" \
+                    -d "grant_type=password" \
+                    -d "username=root" \
+                    -d "password=${GITLAB_PASSWORD}" \
+                    -d "scope=api read_user read_repository write_repository" \
+                    | python3 -c 'import json,sys; print(json.load(sys.stdin)[\"access_token\"])')" && \
+                  git clone --depth 1 "https://oauth2:${GITLAB_TOKEN}@gitlab.apps.rosa.rosa-w67wp.bhg0.p3.openshiftapps.com/developers/workshop-quarkus-using-camel.git" /tmp/workshop-quarkus-using-camel && \
                   python3 /tmp/workspace/workshop/scripts/bootstrap-devspaces-namespaces.py \
                     --helm-chart-dir /tmp/workshop-quarkus-using-camel/helm \
                     --helm-release-name minio
@@ -143,12 +151,20 @@ spec:
           args:
             - |
               HELM_VERSION="v3.16.4" && \
+              GITLAB_URL="https://gitlab.apps.rosa.rosa-w67wp.bhg0.p3.openshiftapps.com" && \
               curl -sL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz \
                 | tar -xz -C /tmp oc && export PATH=/tmp:$PATH && \
               curl -sL "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz" \
                 | tar -xz -C /tmp && mv /tmp/linux-amd64/helm /tmp/helm && export PATH=/tmp:$PATH && \
               git clone --depth 1 https://github.com/na-launch-workshop/platform-software-templates.git /tmp/workspace && \
-              git clone --depth 1 https://gitlab.apps.rosa.rosa-w67wp.bhg0.p3.openshiftapps.com/developers/workshop-quarkus-using-camel.git /tmp/workshop-quarkus-using-camel && \
+              GITLAB_PASSWORD="$(oc get secret gitlab-gitlab-initial-root-password -n gitlab-system -o jsonpath='{.data.password}' | base64 -d)" && \
+              GITLAB_TOKEN="$(curl -sk -X POST "${GITLAB_URL}/oauth/token" \
+                -d "grant_type=password" \
+                -d "username=root" \
+                -d "password=${GITLAB_PASSWORD}" \
+                -d "scope=api read_user read_repository write_repository" \
+                | python3 -c 'import json,sys; print(json.load(sys.stdin)[\"access_token\"])')" && \
+              git clone --depth 1 "https://oauth2:${GITLAB_TOKEN}@gitlab.apps.rosa.rosa-w67wp.bhg0.p3.openshiftapps.com/developers/workshop-quarkus-using-camel.git" /tmp/workshop-quarkus-using-camel && \
               python3 /tmp/workspace/workshop/scripts/bootstrap-devspaces-namespaces.py \
                 --helm-chart-dir /tmp/workshop-quarkus-using-camel/helm \
                 --helm-release-name minio

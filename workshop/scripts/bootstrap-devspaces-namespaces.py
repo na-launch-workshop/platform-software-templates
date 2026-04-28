@@ -133,9 +133,9 @@ def apply_payload(namespace_name, payload, dry_run):
     if not payload.strip():
         return
     if dry_run:
-        print(f"  WOULD apply rendered manifests to namespace {namespace_name}")
+        print(f"  WOULD apply rendered resources to namespace {namespace_name}")
         return
-    run_oc(["apply", "-f", "-"], input_text=payload)
+    run_oc(["apply", "-n", namespace_name, "-f", "-"], input_text=payload)
 
 
 def render_helm_chart(chart_dir, release_name, namespace_name):

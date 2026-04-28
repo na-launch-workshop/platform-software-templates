@@ -128,7 +128,7 @@ spec:
                     -d "password=${GITLAB_PASSWORD}" \
                     -d "scope=api read_user read_repository write_repository" \
                     | python3 -c 'import json,sys; print(json.load(sys.stdin)[\"access_token\"])')" && \
-                  git clone --depth 1 "https://oauth2:${GITLAB_TOKEN}@gitlab.apps.rosa.rosa-w67wp.bhg0.p3.openshiftapps.com/developers/workshop-quarkus-using-camel.git" /tmp/workshop-quarkus-using-camel && \
+                  git clone --branch codex/helm-bootstrap-fix --depth 1 "https://oauth2:${GITLAB_TOKEN}@gitlab.apps.rosa.rosa-w67wp.bhg0.p3.openshiftapps.com/developers/workshop-quarkus-using-camel.git" /tmp/workshop-quarkus-using-camel && \
                   python3 /tmp/workspace/workshop/scripts/bootstrap-devspaces-namespaces.py \
                     --helm-chart-dir /tmp/workshop-quarkus-using-camel/helm \
                     --helm-release-name minio
@@ -164,7 +164,7 @@ spec:
                 -d "password=${GITLAB_PASSWORD}" \
                 -d "scope=api read_user read_repository write_repository" \
                 | python3 -c 'import json,sys; print(json.load(sys.stdin)[\"access_token\"])')" && \
-              git clone --depth 1 "https://oauth2:${GITLAB_TOKEN}@gitlab.apps.rosa.rosa-w67wp.bhg0.p3.openshiftapps.com/developers/workshop-quarkus-using-camel.git" /tmp/workshop-quarkus-using-camel && \
+              git clone --branch codex/helm-bootstrap-fix --depth 1 "https://oauth2:${GITLAB_TOKEN}@gitlab.apps.rosa.rosa-w67wp.bhg0.p3.openshiftapps.com/developers/workshop-quarkus-using-camel.git" /tmp/workshop-quarkus-using-camel && \
               python3 /tmp/workspace/workshop/scripts/bootstrap-devspaces-namespaces.py \
                 --helm-chart-dir /tmp/workshop-quarkus-using-camel/helm \
                 --helm-release-name minio

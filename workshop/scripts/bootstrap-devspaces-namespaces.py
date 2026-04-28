@@ -4,8 +4,9 @@ Bootstrap resources into Dev Spaces user namespaces.
 
 This script is intended to run repeatedly, for example from a CronJob. It:
   - discovers Dev Spaces namespaces created by Che
-  - renders YAML manifests with simple per-user substitutions
-  - applies the rendered manifests into each namespace
+  - optionally renders plain YAML manifests with simple per-user substitutions
+  - optionally renders a Helm chart into plain manifests
+  - applies the rendered resources into each namespace
   - annotates the namespace when reconciliation succeeds
 
 Template variables available in YAML files:
@@ -16,8 +17,8 @@ Template variables available in YAML files:
 
 Usage:
   python3 bootstrap-devspaces-namespaces.py --manifests-dir ./bootstrap-manifests
-  python3 bootstrap-devspaces-namespaces.py --manifests-dir ./bootstrap-manifests --dry-run
-  python3 bootstrap-devspaces-namespaces.py --manifests-dir ./bootstrap-manifests --user pk
+  python3 bootstrap-devspaces-namespaces.py --helm-chart-dir ./helm --helm-release-name minio
+  python3 bootstrap-devspaces-namespaces.py --helm-chart-dir ./helm --helm-release-name minio --user pk
 """
 
 import argparse
@@ -82,6 +83,8 @@ def list_devspaces_namespaces(selector, annotation_key):
 
 
 def collect_yaml_files(manifests_dir):
+    if not manifests_dir:
+        return []
     if not os.path.isdir(manifests_dir):
         raise FileNotFoundError(f"manifests directory not found: {manifests_dir}")
 
@@ -127,14 +130,43 @@ def annotate_namespace(namespace_name, annotation_key, annotation_value, dry_run
 
 
 def apply_payload(namespace_name, payload, dry_run):
+    if not payload.strip():
+        return
     if dry_run:
         print(f"  WOULD apply rendered manifests to namespace {namespace_name}")
         return
     run_oc(["apply", "-f", "-"], input_text=payload)
 
 
-def bootstrap_namespace(namespace, files, annotation_key, annotation_value, dry_run):
-    payload = build_manifest_payload(files, namespace)
+def render_helm_chart(chart_dir, release_name, namespace_name):
+    if not os.path.isdir(chart_dir):
+        raise FileNotFoundError(f"helm chart directory not found: {chart_dir}")
+    result = subprocess.run(
+        ["helm", "template", release_name, chart_dir, "--namespace", namespace_name],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return result.stdout
+
+
+def bootstrap_namespace(
+    namespace,
+    files,
+    helm_chart_dir,
+    helm_release_name,
+    annotation_key,
+    annotation_value,
+    dry_run,
+):
+    payload_parts = []
+    if files:
+        payload_parts.append(build_manifest_payload(files, namespace).strip())
+    if helm_chart_dir:
+        payload_parts.append(
+            render_helm_chart(helm_chart_dir, helm_release_name, namespace.name).strip()
+        )
+    payload = "\n---\n".join(part for part in payload_parts if part) + "\n"
     apply_payload(namespace.name, payload, dry_run)
     annotate_namespace(namespace.name, annotation_key, annotation_value, dry_run)
 
@@ -143,8 +175,18 @@ def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--manifests-dir",
-        required=True,
+        default=None,
         help="Directory containing YAML manifests to apply into each Dev Spaces namespace.",
+    )
+    parser.add_argument(
+        "--helm-chart-dir",
+        default=None,
+        help="Directory containing a Helm chart to render into each Dev Spaces namespace.",
+    )
+    parser.add_argument(
+        "--helm-release-name",
+        default="workspace-bootstrap",
+        help="Helm release name used when rendering the chart. Default: workspace-bootstrap",
     )
     parser.add_argument(
         "--selector",
@@ -178,6 +220,8 @@ def parse_args():
 def main():
     args = parse_args()
     files = collect_yaml_files(args.manifests_dir)
+    if not files and not args.helm_chart_dir:
+        raise ValueError("at least one of --manifests-dir or --helm-chart-dir is required")
     user_filter = set(args.user)
 
     namespaces = list_devspaces_namespaces(args.selector, args.annotation_key)
@@ -204,6 +248,8 @@ def main():
         bootstrap_namespace(
             namespace,
             files,
+            args.helm_chart_dir,
+            args.helm_release_name,
             args.annotation_key,
             args.annotation_value,
             args.dry_run,

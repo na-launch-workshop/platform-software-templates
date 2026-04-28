@@ -21,7 +21,10 @@ metadata:
 rules:
   - apiGroups: ["apps"]
     resources: ["deployments"]
-    verbs: ["get", "list"]
+    verbs: ["get", "list", "create", "patch", "update"]
+  - apiGroups: [""]
+    resources: ["services", "persistentvolumeclaims"]
+    verbs: ["get", "list", "create", "patch", "update"]
   - apiGroups: [""]
     resources: ["namespaces"]
     verbs: ["get", "list", "patch", "update"]
@@ -36,7 +39,7 @@ rules:
     verbs: ["create"]
   - apiGroups: ["route.openshift.io"]
     resources: ["routes"]
-    verbs: ["get"]
+    verbs: ["get", "list", "create", "patch", "update"]
   - apiGroups: ["org.eclipse.che"]
     resources: ["checlusters"]
     verbs: ["get"]
@@ -111,11 +114,16 @@ spec:
               command: ["/bin/bash", "-c"]
               args:
                 - |
+                  HELM_VERSION="v3.16.4" && \
                   curl -sL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz \
                     | tar -xz -C /tmp oc && export PATH=/tmp:$PATH && \
+                  curl -sL "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz" \
+                    | tar -xz -C /tmp && mv /tmp/linux-amd64/helm /tmp/helm && export PATH=/tmp:$PATH && \
                   git clone --depth 1 https://github.com/na-launch-workshop/platform-software-templates.git /tmp/workspace && \
+                  git clone --depth 1 https://gitlab.apps.rosa.rosa-w67wp.bhg0.p3.openshiftapps.com/developers/workshop-quarkus-using-camel.git /tmp/workshop-quarkus-using-camel && \
                   python3 /tmp/workspace/workshop/scripts/bootstrap-devspaces-namespaces.py \
-                    --manifests-dir /tmp/workspace/workshop/scripts/bootstrap-manifests
+                    --helm-chart-dir /tmp/workshop-quarkus-using-camel/helm \
+                    --helm-release-name minio
 
 ---
 apiVersion: batch/v1
@@ -134,11 +142,16 @@ spec:
           command: ["/bin/bash", "-c"]
           args:
             - |
+              HELM_VERSION="v3.16.4" && \
               curl -sL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz \
                 | tar -xz -C /tmp oc && export PATH=/tmp:$PATH && \
+              curl -sL "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz" \
+                | tar -xz -C /tmp && mv /tmp/linux-amd64/helm /tmp/helm && export PATH=/tmp:$PATH && \
               git clone --depth 1 https://github.com/na-launch-workshop/platform-software-templates.git /tmp/workspace && \
+              git clone --depth 1 https://gitlab.apps.rosa.rosa-w67wp.bhg0.p3.openshiftapps.com/developers/workshop-quarkus-using-camel.git /tmp/workshop-quarkus-using-camel && \
               python3 /tmp/workspace/workshop/scripts/bootstrap-devspaces-namespaces.py \
-                --manifests-dir /tmp/workspace/workshop/scripts/bootstrap-manifests
+                --helm-chart-dir /tmp/workshop-quarkus-using-camel/helm \
+                --helm-release-name minio
   backoffLimit: 1
 
 

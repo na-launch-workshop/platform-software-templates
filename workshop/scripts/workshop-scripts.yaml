@@ -96,6 +96,76 @@ spec:
 
 
 
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: provision-helm-releases
+  namespace: workshop-helpers
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: workshop-helpers
+          restartPolicy: OnFailure
+          containers:
+            - name: provision
+              image: python:3.11
+              command: ["/bin/bash", "-c"]
+              args:
+                - |
+                  set -e
+
+                  # Download oc and helm
+                  curl -sL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz \
+                    | tar -xz -C /tmp oc
+                  curl -fsSL https://get.helm.sh/helm-v3.14.3-linux-amd64.tar.gz \
+                    | tar xz -C /tmp && mv /tmp/linux-amd64/helm /tmp/helm
+                  export PATH=/tmp:$PATH
+
+                  # Get Keycloak users from developers group
+                  KC_HOST=$(oc get route keycloak -n keycloak -o jsonpath='{.spec.host}')
+                  KC_PASS=$(oc get secret credential-keycloak -n keycloak -o jsonpath='{.data.ADMIN_PASSWORD}' | base64 -d)
+                  KC_TOKEN=$(curl -sk -X POST "https://${KC_HOST}/auth/realms/master/protocol/openid-connect/token" \
+                    -d "client_id=admin-cli&grant_type=password&username=admin&password=${KC_PASS}" \
+                    | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+                  GROUP_ID=$(curl -sk "https://${KC_HOST}/auth/admin/realms/openshift/groups" \
+                    -H "Authorization: Bearer ${KC_TOKEN}" \
+                    | python3 -c "import sys,json; print(next(g['id'] for g in json.load(sys.stdin) if g['name']=='developers'))")
+                  USERS=$(curl -sk "https://${KC_HOST}/auth/admin/realms/openshift/groups/${GROUP_ID}/members?max=200" \
+                    -H "Authorization: Bearer ${KC_TOKEN}" \
+                    | python3 -c "import sys,json; [print(u['username']) for u in json.load(sys.stdin) if u['username'] != 'admin']")
+
+                  # Clone chart from developers group in GitLab
+                  GITLAB_HOST=$(oc get route gitlab -n gitlab-system -o jsonpath='{.spec.host}')
+                  GITLAB_TOKEN=$(oc get secret gitlab-service -n gitlab -o jsonpath='{.data.GITLAB_ADMIN_TOKEN}' | base64 -d)
+                  git clone --depth 1 "https://oauth2:${GITLAB_TOKEN}@${GITLAB_HOST}/developers/workshop-springboot-using_camel.git" /tmp/chart-source
+
+                  # For each user, install helm release if namespace exists and release not already deployed
+                  for USER in $USERS; do
+                    NS="${USER}-devspaces"
+
+                    if ! oc get namespace $NS &>/dev/null; then
+                      echo "  $NS: namespace not found, skipping"
+                      continue
+                    fi
+
+                    STATUS=$(/tmp/helm status workshop-deployer -n $NS --output json 2>/dev/null \
+                      | python3 -c "import sys,json; print(json.load(sys.stdin)['info']['status'])" 2>/dev/null || echo "none")
+
+                    if [ "$STATUS" = "deployed" ]; then
+                      echo "  $NS: already deployed, skipping"
+                      continue
+                    fi
+
+                    echo "  $NS: status=${STATUS}, installing..."
+                    /tmp/helm upgrade --install workshop-deployer /tmp/chart-source/helm -n $NS \
+                      && echo "  $NS: OK" || echo "  $NS: FAILED"
+                  done
+
 #   ------------------------------------------------
 #   TO USE
 #   oc apply -f ./workshop-scripts.yaml

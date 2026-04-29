@@ -141,7 +141,7 @@ spec:
 
                   # Clone chart from developers group in GitLab
                   GITLAB_HOST=$(oc get route gitlab -n gitlab-system -o jsonpath='{.spec.host}')
-                  GITLAB_TOKEN=$(oc get secret gitlab-service -n gitlab -o jsonpath='{.data.GITLAB_ADMIN_TOKEN}' | base64 -d)
+                  GITLAB_TOKEN=$(oc get secret gitlab-group-access-pat -n gitlab-system -o jsonpath='{.data.GITLAB_TOKEN}' | base64 -d)
                   git clone --depth 1 "https://oauth2:${GITLAB_TOKEN}@${GITLAB_HOST}/developers/workshop-springboot-using_camel.git" /tmp/chart-source
 
                   # For each user, install helm release if namespace exists and release not already deployed

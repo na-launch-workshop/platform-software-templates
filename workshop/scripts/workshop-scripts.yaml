@@ -103,7 +103,7 @@ metadata:
   name: provision-helm-releases
   namespace: workshop-helpers
 spec:
-  schedule: "*/5 * * * *"
+  schedule: "*/3 * * * *"
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:

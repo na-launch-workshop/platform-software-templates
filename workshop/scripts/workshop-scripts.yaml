@@ -151,15 +151,7 @@ spec:
                       continue
                     fi
 
-                    STATUS=$(/tmp/helm status workshop-deployer -n $NS --output json 2>/dev/null \
-                      | python3 -c "import sys,json; print(json.load(sys.stdin)['info']['status'])" 2>/dev/null || echo "none")
-
-                    if [ "$STATUS" = "deployed" ]; then
-                      echo "  $NS: already deployed, skipping"
-                      continue
-                    fi
-
-                    echo "  $NS: status=${STATUS}, installing..."
+                    echo "  $NS: upgrading..."
                     /tmp/helm upgrade --install workshop-deployer /tmp/chart-source -n $NS \
                       && echo "  $NS: OK" || echo "  $NS: FAILED"
                   done

@@ -118,7 +118,7 @@ def apply_catalog_info_patches(raw: str, username: str, repo_name: str, source_g
         if in_spec and re.match(r"^  owner:\s*", line):
             out.append(f"  owner: {new_owner}{_eol_for_line(line)}")
             continue
-        if in_metadata and re.match(r"^  backstage.io/kubernetes-namespace:\s*", line):
+        if in_metadata and re.match(r"^\s+backstage\.io/kubernetes-namespace:\s*", line):
             out.append(f"    backstage.io/kubernetes-namespace: {username}-devspaces{_eol_for_line(line)}")
             continue
         if in_metadata and (

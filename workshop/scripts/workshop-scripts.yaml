@@ -24,7 +24,7 @@ rules:
     verbs: ["get", "list", "create", "patch", "update"]
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["rolebindings"]
-    verbs: ["get", "list", "create", "patch", "update"]
+    verbs: ["get", "list", "create", "patch", "update", "escalate", "bind"]
   - apiGroups: ["tekton.dev"]
     resources: ["tasks", "pipelines"]
     verbs: ["get", "list", "create", "patch", "update"]

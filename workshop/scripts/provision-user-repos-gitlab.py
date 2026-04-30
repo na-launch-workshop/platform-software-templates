@@ -417,6 +417,44 @@ def patch_catalog_info_in_cloned_user_repo(
 
 
 # ---------------------------------------------------------------------------
+# Tekton webhook helpers
+# ---------------------------------------------------------------------------
+
+TEKTON_WEBHOOK_REPO = "workshop-springboot-hello_by_lang"
+
+def get_apps_domain(base_url: str) -> str:
+    """Extract the apps domain from the GitLab base URL (e.g. apps.rosa.example.com)."""
+    host = base_url.replace("https://", "").replace("http://", "")
+    # gitlab.apps.xxx -> apps.xxx
+    parts = host.split(".", 1)
+    return parts[1] if len(parts) > 1 else host
+
+
+def ensure_gitlab_webhook(base_url: str, token: str, project_id: int, webhook_url: str) -> None:
+    """Create the Tekton EventListener webhook on the project if not already present."""
+    resp = requests.get(
+        f"{base_url}/api/v4/projects/{project_id}/hooks",
+        headers=gl_headers(token),
+        verify=False,
+    )
+    resp.raise_for_status()
+    for hook in resp.json():
+        if hook.get("url") == webhook_url:
+            return  # already exists
+    resp = requests.post(
+        f"{base_url}/api/v4/projects/{project_id}/hooks",
+        headers=gl_headers(token),
+        verify=False,
+        json={
+            "url": webhook_url,
+            "push_events": True,
+            "enable_ssl_verification": False,
+        },
+    )
+    resp.raise_for_status()
+
+
+# ---------------------------------------------------------------------------
 # ConfigMap loader (optional: source group path only)
 # ---------------------------------------------------------------------------
 
@@ -445,6 +483,7 @@ def main():
     args = parser.parse_args()
 
     base_url = args.gitlab_url.rstrip("/") if args.gitlab_url else get_gitlab_url()
+    apps_domain = get_apps_domain(base_url)
 
     token = args.token
     if not token:
@@ -544,6 +583,13 @@ def main():
                     project_id = get_project_id(base_url, token, username, name)
                     if project_id:
                         ensure_branch_unprotected(base_url, token, project_id)
+                        if name == TEKTON_WEBHOOK_REPO:
+                            webhook_url = f"https://springboot-listener-{username}-devspaces.{apps_domain}"
+                            try:
+                                ensure_gitlab_webhook(base_url, token, project_id, webhook_url)
+                                print(f"   HOOK {name} → {webhook_url}")
+                            except Exception as exc:
+                                print(f"   WARN webhook: {exc}")
                     if patch_catalog_info_in_cloned_user_repo(
                         f"{push_base}/{username}/{name}.git", username, name, source_group
                     ):
@@ -565,6 +611,13 @@ def main():
                 project_id = create_user_project(base_url, token, namespace_id, name)
                 ensure_branch_unprotected(base_url, token, project_id)
                 clone_push_with_catalog_info(source_url, dest_url, username, name, source_group)
+                if name == TEKTON_WEBHOOK_REPO:
+                    webhook_url = f"https://springboot-listener-{username}-devspaces.{apps_domain}"
+                    try:
+                        ensure_gitlab_webhook(base_url, token, project_id, webhook_url)
+                        print(f"   HOOK {name} → {webhook_url}")
+                    except Exception as exc:
+                        print(f"   WARN webhook: {exc}")
                 print(f"   OK  {name}")
                 newly_provisioned.append(f"{username}/{name}")
             except Exception as exc:

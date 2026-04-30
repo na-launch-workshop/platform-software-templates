@@ -1,5 +1,16 @@
 """Shared GitLab helpers for workshop scripts (token resolution, listing source repos)."""
 
+# shared helper module used by the other scripts. It contains two things:
+
+#   1. get_gitlab_token_from_cluster — resolves a GitLab admin token automatically by trying multiple sources
+#    in order: deployment env vars, root OAuth login, and known secrets across namespaces (gitlab,
+#   gitlab-system, backstage)
+#   2. list_group_projects_with_path_prefix — lists all projects in a GitLab group whose path starts with a
+#   given prefix (e.g. workshop-), handling pagination
+
+#   provision-user-repos-gitlab.py imports from it, and purge-user-repos-gitlab.py also imports
+#   get_gitlab_token_from_cluster from it so token resolution works the same way across all scripts.
+
 from __future__ import annotations
 
 import base64

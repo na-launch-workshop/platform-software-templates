@@ -118,10 +118,12 @@ def apply_catalog_info_patches(raw: str, username: str, repo_name: str, source_g
         if in_spec and re.match(r"^  owner:\s*", line):
             out.append(f"  owner: {new_owner}{_eol_for_line(line)}")
             continue
-        if in_metadata and from_seg in line and (
+        if in_metadata and (
             re.match(r"^\s*-\s*url:\s*", line) or re.match(r"^\s{3,}url:\s*", line)
         ):
-            out.append(line.replace(from_seg, to_seg))
+            new_line = line.replace(from_seg, to_seg)
+            new_line = new_line.replace(f"{source_group}-devspaces", f"{username}-devspaces")
+            out.append(new_line)
             continue
         out.append(line)
 

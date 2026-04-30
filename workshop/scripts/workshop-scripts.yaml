@@ -139,10 +139,8 @@ spec:
                     -H "Authorization: Bearer ${KC_TOKEN}" \
                     | python3 -c "import sys,json; [print(u['username']) for u in json.load(sys.stdin) if u['username'] != 'admin']")
 
-                  # Clone chart from developers group in GitLab
-                  GITLAB_HOST=$(oc get route gitlab -n gitlab-system -o jsonpath='{.spec.host}')
-                  GITLAB_TOKEN=$(oc get secret gitlab-group-access-pat -n gitlab-system -o jsonpath='{.data.GITLAB_TOKEN}' | base64 -d)
-                  git clone --depth 1 "https://oauth2:${GITLAB_TOKEN}@${GITLAB_HOST}/developers/workshop-springboot-using_camel.git" /tmp/chart-source
+                  # Clone chart from workshop_resources repo (chart is at repo root)
+                  git clone --depth 1 https://github.com/na-launch-workshop/workshop_resources.git /tmp/chart-source
 
                   # For each user, install helm release if namespace exists and release not already deployed
                   for USER in $USERS; do
@@ -162,7 +160,7 @@ spec:
                     fi
 
                     echo "  $NS: status=${STATUS}, installing..."
-                    /tmp/helm upgrade --install workshop-deployer /tmp/chart-source/helm -n $NS \
+                    /tmp/helm upgrade --install workshop-deployer /tmp/chart-source -n $NS \
                       && echo "  $NS: OK" || echo "  $NS: FAILED"
                   done
 

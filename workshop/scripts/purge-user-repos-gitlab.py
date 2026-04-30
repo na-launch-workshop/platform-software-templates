@@ -203,7 +203,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--gitlab-url", default=None, help="GitLab base URL (default: read from cluster route)")
     parser.add_argument("--token",      default=os.environ.get("GITLAB_TOKEN"), help="GitLab admin token (optional, reads from cluster if omitted)")
-    parser.add_argument("--user",       help="Purge a single user only")
+    parser.add_argument("--user",       action="append", help="Purge specific user(s) only (repeatable)")
     parser.add_argument("--dry-run",    action="store_true", help="Print actions without executing")
     args = parser.parse_args()
 
@@ -220,12 +220,15 @@ def main():
     kc_token = get_keycloak_token(kc_url, kc_pass)
 
     if args.user:
-        kc_user = get_keycloak_user(kc_url, kc_token, args.user)
-        if not kc_user:
-            sys.exit(f"Keycloak user '{args.user}' not found")
-        users = [kc_user["username"]]
+        users = []
+        for username in args.user:
+            kc_user = get_keycloak_user(kc_url, kc_token, username)
+            if not kc_user:
+                sys.exit(f"Keycloak user '{username}' not found")
+            users.append(kc_user["username"])
     else:
         users = get_developers(kc_url, kc_token)
+
 
     print(f"  Users: {users}\n")
     print(f"GitLab: {base_url}")

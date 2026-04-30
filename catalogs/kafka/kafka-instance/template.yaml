@@ -32,7 +32,7 @@ spec:
           ui:options:
             catalogFilter:
               - kind: Component
-                spec.type: workshop-repository
+                spec.type: workshop-lab
         name:
           title: Kafka Instance Name
           type: string

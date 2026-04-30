@@ -17,7 +17,7 @@ metadata:
       title: "DevSpaces: Open Deployment Manifests"
       icon: web
 spec:
-  type: workshop-repository
+  type: workshop-lab
   lifecycle: production
   owner: ${{ values.owner }}
   gitea:

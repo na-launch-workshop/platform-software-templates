@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Purges workshop users from Keycloak, GitLab, RHDH catalog, and DevSpaces.
+Purges workshop users from Keycloak and GitLab.
 
 Credentials and cluster endpoints are read automatically (requires oc login).
 
@@ -24,7 +24,6 @@ import sys
 
 import requests
 import urllib3
-import yaml
 
 urllib3.disable_warnings()
 
@@ -157,97 +156,6 @@ def delete_gitlab_user(base_url, gl_token, user_id, dry_run):
         raise RuntimeError(f"GitLab delete failed: {resp.status_code} {resp.text}")
 
 
-# ---------------------------------------------------------------------------
-# RHDH catalog (postgres)
-# ---------------------------------------------------------------------------
-
-def run_psql(sql):
-    result = subprocess.run(
-        ["oc", "exec", "-i", "-n", "backstage", "deployment/postgres", "--",
-         "psql", "-U", "postgres", "-d", "backstage_plugin_catalog"],
-        input=sql, capture_output=True, text=True, check=True,
-    )
-    return result.stdout
-
-
-def count_catalog_entries(username):
-    out = run_psql(f"SELECT COUNT(*) FROM locations WHERE target LIKE $${'/'+username+'/'}$$||\\'%\\'::text;")
-    # simpler: just use LIKE with dollar-quoted prefix
-    out = run_psql(
-        "SELECT COUNT(*) FROM locations WHERE target ~ "
-        f"'/{username}/[^/]+/-/blob/';"
-    )
-    try:
-        return int(out.strip().split("\n")[2].strip())
-    except Exception:
-        return -1
-
-
-def delete_catalog_entries(username, dry_run):
-    pattern = f"/{username}/"
-    escaped = pattern.replace("'", "''")
-
-    count_out = run_psql(
-        f"SELECT COUNT(*) FROM locations WHERE target LIKE '%{escaped}%';"
-    )
-    try:
-        count = int(count_out.strip().split("\n")[2].strip())
-    except Exception:
-        count = -1
-
-    if dry_run:
-        print(f"   WOULD delete ~{count} RHDH catalog entries for '{username}'")
-        return
-
-    run_psql(f"""
-        BEGIN;
-        DELETE FROM refresh_state
-          WHERE location_key LIKE '%{escaped}%';
-        DELETE FROM refresh_state_references
-          WHERE target_entity_ref IN (
-            SELECT entity_ref FROM refresh_state
-             WHERE location_key LIKE '%{escaped}%'
-          );
-        DELETE FROM locations
-          WHERE target LIKE '%{escaped}%';
-        COMMIT;
-    """)
-    print(f"   RHDH catalog: {count} entries removed")
-
-
-# ---------------------------------------------------------------------------
-# DevSpaces
-# ---------------------------------------------------------------------------
-
-def delete_devspaces_namespace(username, dry_run):
-    ns = f"{username}-devspaces"
-    result = subprocess.run(
-        ["oc", "get", "namespace", ns],
-        capture_output=True, text=True,
-    )
-    if result.returncode != 0:
-        print(f"   DevSpaces: namespace '{ns}' not found — skipping")
-        return
-
-    if dry_run:
-        print(f"   WOULD delete DevSpaces namespace '{ns}' (workspaces + PVCs)")
-        return
-
-    subprocess.run(
-        ["oc", "delete", "namespace", ns, "--wait=false"],
-        capture_output=True, text=True, check=True,
-    )
-    print(f"   DevSpaces: namespace '{ns}' deleted")
-
-
-# ---------------------------------------------------------------------------
-# ConfigMap loader
-# ---------------------------------------------------------------------------
-
-def load_configmap(path):
-    with open(path) as f:
-        cm = yaml.safe_load(f)
-    return yaml.safe_load(cm["data"]["repos.yaml"])
 
 
 # ---------------------------------------------------------------------------
@@ -298,20 +206,6 @@ def main():
                 errors.append(f"{username}/gitlab")
         else:
             print(f"   GitLab: '{username}' not found — skipping")
-
-        # RHDH catalog
-        try:
-            delete_catalog_entries(username, args.dry_run)
-        except Exception as exc:
-            print(f"   ERR RHDH catalog: {exc}")
-            errors.append(f"{username}/rhdh")
-
-        # DevSpaces
-        try:
-            delete_devspaces_namespace(username, args.dry_run)
-        except Exception as exc:
-            print(f"   ERR DevSpaces: {exc}")
-            errors.append(f"{username}/devspaces")
 
         print()
 

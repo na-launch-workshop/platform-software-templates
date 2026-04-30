@@ -14,17 +14,11 @@ data:
       - name: workshop-springboot-hello_by_lang
         title: "Module 2 - Workshop Spring Boot Hello By Language"
 
-      - name: workshop-quarkus-hello-quarkus
-        title: "Module 2a - Workshop Quarkus Hello By Language"
-
       - name: workshop-springboot-using_camel
         title: "Module 3 - Workshop Spring Boot Using Camel"
 
       - name: workshop-quarkus-using-camel
         title: "Module 3 - Workshop Quarkus Using Camel"
-
-      - name: workshop-quarkus-using-funqy-stateless-events
-        title: "Module 4 - Workshop Quarkus Using Funqy Stateless Events"
 
       - name: workshop-quarkus-openshift-telemetry-with-micrometer
         title: "Module 5 - Workshop Quarkus Openshift Telemetry With Micrometer"

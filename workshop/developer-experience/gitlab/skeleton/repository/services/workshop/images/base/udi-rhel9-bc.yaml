@@ -1,0 +1,22 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: udi-rhel9-build
+  namespace: devspaces-build
+spec:
+  source:
+    type: Git
+    git:
+      uri: 'https://github.com/na-launch/devspaces-udi-rhel9.git'
+    contextDir: /
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Containerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      namespace: openshift
+      name: udi-rhel9:3.25.0
+  triggers:
+    - type: ConfigChange

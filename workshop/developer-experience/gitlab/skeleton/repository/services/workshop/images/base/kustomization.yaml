@@ -5,4 +5,5 @@ resources:
 - module-opentelemetry-python-curl-bc.yaml
 - module-opentelemetry-python-curl-is.yaml
 - rolebinding.yaml
+- udi-rhel9-bc.yaml
 - udi-rhel9-is.yaml

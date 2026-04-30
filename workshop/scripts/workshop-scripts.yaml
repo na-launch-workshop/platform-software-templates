@@ -50,7 +50,7 @@ rules:
     resources: ["applicationsets"]
     verbs: ["get", "patch"]
   - apiGroups: ["kafka.strimzi.io"]
-    resources: ["kafkas", "kafkatopics"]
+    resources: ["kafkas"]
     verbs: ["get", "list", "create", "patch", "update"]
 
 ---

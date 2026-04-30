@@ -17,9 +17,6 @@ data:
       - name: workshop-springboot-using_camel
         title: "Module 3 - Workshop Spring Boot Using Camel"
 
-      - name: workshop-quarkus-using-camel
-        title: "Module 3 - Workshop Quarkus Using Camel"
-
       - name: workshop-quarkus-openshift-telemetry-with-micrometer
         title: "Module 5 - Workshop Quarkus Openshift Telemetry With Micrometer"
 

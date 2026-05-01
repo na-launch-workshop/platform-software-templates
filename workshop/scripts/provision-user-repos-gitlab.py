@@ -549,8 +549,6 @@ def main():
             ensure_keycloak_email_verified(kc_url, kc_token, user)
         except Exception as exc:
             print(f"   WARN: could not mark email verified for '{username}' — {exc}")
-            errors.append(username)
-            continue
 
         # Look up user in GitLab
         gl_user = get_gitlab_user(base_url, token, username)

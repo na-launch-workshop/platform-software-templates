@@ -173,8 +173,6 @@ spec:
                       oc create namespace $NS
                     fi
 
-                    oc adm policy add-role-to-user admin $USER -n $NS --rolebinding-name=user-admin &>/dev/null
-
                     echo "  $NS: upgrading..."
                     /tmp/helm upgrade --install workshop-deployer /tmp/chart-source -n $NS \
                       && echo "  $NS: OK" || echo "  $NS: FAILED"

@@ -28,7 +28,7 @@ rules:
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["clusterroles"]
     verbs: ["bind"]
-    resourceNames: ["system:image-pusher"]
+    resourceNames: ["system:image-pusher", "admin"]
   - apiGroups: ["tekton.dev"]
     resources: ["tasks", "pipelines"]
     verbs: ["get", "list", "create", "patch", "update"]

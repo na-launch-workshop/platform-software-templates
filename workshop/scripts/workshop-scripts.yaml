@@ -40,7 +40,7 @@ rules:
     verbs: ["get", "list", "create", "patch", "update"]
   - apiGroups: [""]
     resources: ["namespaces"]
-    verbs: ["get", "list", "patch", "update"]
+    verbs: ["get", "list", "create", "patch", "update"]
   - apiGroups: [""]
     resources: ["secrets", "configmaps"]
     verbs: ["get", "list", "create", "patch", "update", "delete"]
@@ -163,8 +163,8 @@ spec:
                     NS="${USER}-devspaces"
 
                     if ! oc get namespace $NS &>/dev/null; then
-                      echo "  $NS: namespace not found, skipping"
-                      continue
+                      echo "  $NS: namespace not found, creating..."
+                      oc create namespace $NS
                     fi
 
                     echo "  $NS: upgrading..."

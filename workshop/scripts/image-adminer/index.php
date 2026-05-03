@@ -1,12 +1,6 @@
 <?php
-function adminer_object() {
-    class AdminerPostgresOnly extends Adminer {
-        function loginForm() {
-            global $drivers;
-            $drivers = array("pgsql" => "PostgreSQL");
-            return parent::loginForm();
-        }
-    }
-    return new AdminerPostgresOnly;
+if (!isset($_GET['pgsql']) && !isset($_POST['auth'])) {
+    header('Location: ?pgsql=localhost');
+    exit;
 }
 include 'adminer.php';

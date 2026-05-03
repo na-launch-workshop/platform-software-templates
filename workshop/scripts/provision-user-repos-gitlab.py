@@ -423,7 +423,11 @@ def patch_catalog_info_in_cloned_user_repo(
 # Tekton webhook helpers
 # ---------------------------------------------------------------------------
 
-TEKTON_WEBHOOK_REPO = "workshop-springboot-hello_by_lang"
+# Maps repo name -> EventListener route prefix
+TEKTON_WEBHOOK_REPOS = {
+    "workshop-springboot-hello_by_lang": "springboot-listener",
+    "workshop-springboot-using_camel":   "camel-listener",
+}
 
 def get_apps_domain(base_url: str) -> str:
     """Extract the apps domain from the GitLab base URL (e.g. apps.rosa.example.com)."""
@@ -584,8 +588,9 @@ def main():
                     project_id = get_project_id(base_url, token, username, name)
                     if project_id:
                         ensure_branch_unprotected(base_url, token, project_id)
-                        if name == TEKTON_WEBHOOK_REPO:
-                            webhook_url = f"https://springboot-listener-{username}-devspaces.{apps_domain}"
+                        if name in TEKTON_WEBHOOK_REPOS:
+                            listener = TEKTON_WEBHOOK_REPOS[name]
+                            webhook_url = f"https://{listener}-{username}-devspaces.{apps_domain}"
                             try:
                                 ensure_gitlab_webhook(base_url, token, project_id, webhook_url)
                                 print(f"   HOOK {name} → {webhook_url}")
@@ -612,8 +617,9 @@ def main():
                 project_id = create_user_project(base_url, token, namespace_id, name)
                 ensure_branch_unprotected(base_url, token, project_id)
                 clone_push_with_catalog_info(source_url, dest_url, username, name, source_group)
-                if name == TEKTON_WEBHOOK_REPO:
-                    webhook_url = f"https://springboot-listener-{username}-devspaces.{apps_domain}"
+                if name in TEKTON_WEBHOOK_REPOS:
+                    listener = TEKTON_WEBHOOK_REPOS[name]
+                    webhook_url = f"https://{listener}-{username}-devspaces.{apps_domain}"
                     try:
                         ensure_gitlab_webhook(base_url, token, project_id, webhook_url)
                         print(f"   HOOK {name} → {webhook_url}")

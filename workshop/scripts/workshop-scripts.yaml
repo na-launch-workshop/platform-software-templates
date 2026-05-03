@@ -100,6 +100,7 @@ spec:
   jobTemplate:
     spec:
       activeDeadlineSeconds: 50
+      backoffLimit: 1
       template:
         spec:
           serviceAccountName: workshop-helpers
@@ -128,6 +129,7 @@ spec:
   jobTemplate:
     spec:
       activeDeadlineSeconds: 170
+      backoffLimit: 1
       template:
         spec:
           serviceAccountName: workshop-helpers

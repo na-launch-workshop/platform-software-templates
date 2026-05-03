@@ -99,6 +99,7 @@ spec:
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
+      activeDeadlineSeconds: 50
       template:
         spec:
           serviceAccountName: workshop-helpers
@@ -129,6 +130,7 @@ spec:
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
+      activeDeadlineSeconds: 170
       template:
         spec:
           serviceAccountName: workshop-helpers
@@ -139,44 +141,14 @@ spec:
               command: ["/bin/bash", "-c"]
               args:
                 - |
-                  set -e
-
-                  # Download oc and helm
+                  pip install --quiet --target /tmp/pylib requests urllib3 && export PYTHONPATH=/tmp/pylib && \
                   curl -sL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz \
                     | tar -xz -C /tmp oc
                   curl -fsSL https://get.helm.sh/helm-v3.14.3-linux-amd64.tar.gz \
                     | tar xz -C /tmp && mv /tmp/linux-amd64/helm /tmp/helm
                   export PATH=/tmp:$PATH
-
-                  # Get Keycloak users from developers group
-                  KC_HOST=$(oc get route keycloak -n keycloak -o jsonpath='{.spec.host}')
-                  KC_PASS=$(oc get secret credential-keycloak -n keycloak -o jsonpath='{.data.ADMIN_PASSWORD}' | base64 -d)
-                  KC_TOKEN=$(curl -sk -X POST "https://${KC_HOST}/auth/realms/master/protocol/openid-connect/token" \
-                    -d "client_id=admin-cli&grant_type=password&username=admin&password=${KC_PASS}" \
-                    | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
-                  GROUP_ID=$(curl -sk "https://${KC_HOST}/auth/admin/realms/openshift/groups" \
-                    -H "Authorization: Bearer ${KC_TOKEN}" \
-                    | python3 -c "import sys,json; print(next(g['id'] for g in json.load(sys.stdin) if g['name']=='developers'))")
-                  USERS=$(curl -sk "https://${KC_HOST}/auth/admin/realms/openshift/groups/${GROUP_ID}/members?max=200" \
-                    -H "Authorization: Bearer ${KC_TOKEN}" \
-                    | python3 -c "import sys,json; [print(u['username']) for u in json.load(sys.stdin) if u['username'] != 'admin']")
-
-                  # Clone chart from workshop_resources repo (chart is at repo root)
-                  git clone --depth 1 https://github.com/na-launch-workshop/workshop_resources.git /tmp/chart-source
-
-                  # For each user, install helm release if namespace exists and release not already deployed
-                  for USER in $USERS; do
-                    NS="${USER}-devspaces"
-
-                    if ! oc get namespace $NS &>/dev/null; then
-                      echo "  $NS: namespace not found, creating..."
-                      oc create namespace $NS
-                    fi
-
-                    echo "  $NS: upgrading..."
-                    /tmp/helm upgrade --install workshop-deployer /tmp/chart-source -n $NS \
-                      && echo "  $NS: OK" || echo "  $NS: FAILED"
-                  done
+                  git clone --depth 1 https://github.com/na-launch-workshop/platform-software-templates.git /tmp/workspace && \
+                  python3 /tmp/workspace/workshop/scripts/provision-helm-releases.py
 
 #   ------------------------------------------------
 #   TO USE

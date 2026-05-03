@@ -106,13 +106,10 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: provision
-              image: python:3.11
+              image: image-registry.openshift-image-registry.svc:5000/workshop-helpers/workshop-helper:latest
               command: ["/bin/bash", "-c"]
               args:
                 - |
-                  pip install --quiet --target /tmp/pylib requests pyyaml urllib3 && export PYTHONPATH=/tmp/pylib && \
-                  curl -sL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz \
-                    | tar -xz -C /tmp oc && export PATH=/tmp:$PATH && \
                   git clone --depth 1 https://github.com/na-launch-workshop/platform-software-templates.git /tmp/workspace && \
                   python3 /tmp/workspace/workshop/scripts/provision-user-repos-gitlab.py
 
@@ -137,16 +134,10 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: provision
-              image: python:3.11
+              image: image-registry.openshift-image-registry.svc:5000/workshop-helpers/workshop-helper:latest
               command: ["/bin/bash", "-c"]
               args:
                 - |
-                  pip install --quiet --target /tmp/pylib requests urllib3 && export PYTHONPATH=/tmp/pylib && \
-                  curl -sL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz \
-                    | tar -xz -C /tmp oc
-                  curl -fsSL https://get.helm.sh/helm-v3.14.3-linux-amd64.tar.gz \
-                    | tar xz -C /tmp && mv /tmp/linux-amd64/helm /tmp/helm
-                  export PATH=/tmp:$PATH
                   git clone --depth 1 https://github.com/na-launch-workshop/platform-software-templates.git /tmp/workspace && \
                   python3 /tmp/workspace/workshop/scripts/provision-helm-releases.py
 

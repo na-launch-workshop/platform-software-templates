@@ -426,6 +426,7 @@ def patch_catalog_info_in_cloned_user_repo(
 # Maps repo name -> EventListener route prefix
 TEKTON_WEBHOOK_REPOS = {
     "workshop-springboot-hello_by_lang": "springboot-listener",
+    "workshop-springboot-using_camel":   "camel-listener",
 }
 
 def get_apps_domain(base_url: str) -> str:

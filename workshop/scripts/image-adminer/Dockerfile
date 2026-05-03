@@ -1,2 +1,2 @@
 FROM adminer:latest
-COPY adminer.css /var/www/html/adminer.css
+COPY index.php /var/www/html/index.php

@@ -1,0 +1,126 @@
+/* ── Reset & base ─────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+body {
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px;
+  background: #f4f6f9;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+/* ── Top nav bar ─────────────────────────────────────────── */
+#menu {
+  background: #c0392b;
+  color: #fff;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  height: 52px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+}
+
+#menu a, #menu a:visited {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  margin-right: 20px;
+  opacity: .85;
+  transition: opacity .15s;
+}
+#menu a:hover { opacity: 1; }
+
+/* ── Content area ────────────────────────────────────────── */
+#content {
+  max-width: 1200px;
+  margin: 32px auto;
+  padding: 0 24px;
+}
+
+/* ── Cards / tables ──────────────────────────────────────── */
+.layout, .table-list, form {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: #f0f2f5;
+  color: #555;
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 2px solid #e2e5ea;
+}
+
+td {
+  padding: 9px 14px;
+  border-bottom: 1px solid #eef0f3;
+  vertical-align: top;
+}
+
+tr:hover td { background: #fafbfc; }
+
+/* ── Buttons ─────────────────────────────────────────────── */
+input[type=submit], .button {
+  background: #c0392b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+}
+input[type=submit]:hover, .button:hover { background: #a93226; }
+
+/* ── Inputs ──────────────────────────────────────────────── */
+input[type=text], input[type=password], select, textarea {
+  border: 1px solid #dde1e7;
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 13px;
+  width: 100%;
+  background: #fafbfc;
+  color: #1a1a2e;
+  transition: border-color .15s;
+}
+input[type=text]:focus, input[type=password]:focus,
+select:focus, textarea:focus {
+  border-color: #c0392b;
+  outline: none;
+  background: #fff;
+}
+
+/* ── Login page ──────────────────────────────────────────── */
+#login {
+  max-width: 400px;
+  margin: 80px auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.1);
+  padding: 40px;
+}
+
+#login h1 {
+  color: #c0392b;
+  font-size: 22px;
+  margin: 0 0 24px;
+  text-align: center;
+}
+
+/* ── Links ───────────────────────────────────────────────── */
+a, a:visited { color: #c0392b; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Messages ────────────────────────────────────────────── */
+.message { background: #eafaf1; border-left: 4px solid #27ae60; padding: 10px 16px; border-radius: 6px; margin-bottom: 16px; }
+.error   { background: #fdedec; border-left: 4px solid #c0392b; padding: 10px 16px; border-radius: 6px; margin-bottom: 16px; }

@@ -4,8 +4,7 @@ metadata:
   name: kafka-instance
   title: Create Kafka Instance
   description: |
-    Deploys a Kafka instance from Developer Hub with Kafka UI, default topic creation,
-    and optional KEDA integration on Red Hat OpenShift in a selected namespace.
+    Deploys a Kafka instance with Minio and KEDA.
   tags:
     - gitlab
     - kafka
@@ -44,25 +43,6 @@ spec:
           minLength: 3
           maxLength: 30
 
-    - title: Feature Toggles
-      ui:group: features
-      properties:
-        kafkaUIEnabled:
-          title: Enable Kafka UI
-          type: boolean
-          description: Deploy a web-based Kafka UI for inspecting topics and messages.
-          default: true
-        topicsEnabled:
-          title: Create Default Topics
-          type: boolean
-          description: Automatically create default Kafka topics (package-receiver, translated-output).
-          default: true
-        kedaEnabled:
-          title: Enable KEDA Topic
-          type: boolean
-          description: Create a keda-events topic for KEDA-based autoscaling integration.
-          default: true
-
   steps:
 
     - action: catalog:fetch
@@ -95,10 +75,6 @@ spec:
         targetPath: "./services/${{ user.entity.metadata.name }}/kafka-instance/base"
         values:
           name: ${{ parameters.name }}
-          userName: ${{ user.entity.metadata.name }}
-          kafkaUIEnabled: ${{ parameters.kafkaUIEnabled }}
-          topicsEnabled: ${{ parameters.topicsEnabled }}
-          kedaEnabled: ${{ parameters.kedaEnabled }}
 
     - id: templateKafkaInstanceEntity
       name: Template Kafka Component
@@ -108,8 +84,7 @@ spec:
         targetPath: "backstage/${{ user.entity.metadata.name }}/kafka-instance"
         values:
           name: ${{ parameters.name }}-kafka
-          bootstrapService: ${{ parameters.name }}-kafka-bootstrap.${{ user.entity.metadata.name }}-kafka.svc.cluster.local
-          kafkaUIEnabled: ${{ parameters.kafkaUIEnabled }}
+          bootstrapService: kafka-kafka-bootstrap.${{ parameters.name }}-kafka.svc.cluster.local
           owner: |
             ${{ "user:" + user.entity.metadata.namespace + "/" + user.entity.metadata.name if user.entity.metadata.namespace else "default/guest" }}
           rootSelfServiceRepo: ${{ parameters.workshopRepo }}
@@ -121,8 +96,6 @@ spec:
       name: Publishing to Workshop Repository
       action: gitlab:repo:push
       input:
-        description: |
-          Publishing Kafka Instance to workshop repository
         repoUrl: gitlab.com?owner=${{ steps['fetchWorkshopEntity'].output.entity.spec.gitlab.owner }}&repo=${{ steps['fetchWorkshopEntity'].output.entity.spec.gitlab.repository }}
         branchName: main
         commitAction: create

@@ -3,12 +3,3 @@ helmCharts:
     repo: "https://na-launch-workshop.github.io/platform-supporting-charts"
     version: "*"
     namespace: "${{ values.name }}-kafka"
-    valuesInline:
-      name: ${{ values.name }}
-      userName: ${{ values.userName }}
-      kafkaUI:
-        enabled: ${{ values.kafkaUIEnabled }}
-      topics:
-        enabled: ${{ values.topicsEnabled }}
-      keda:
-        enabled: ${{ values.kedaEnabled }}

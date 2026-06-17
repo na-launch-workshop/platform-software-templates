@@ -242,4 +242,4 @@ spec:
         url: ${{ steps['publishEmptyRepo'].output.remoteUrl }}
       - title: Open in catalog
         icon: catalog
-        entityRef: component:default/root-self-service-repository
+        entityRef: component:default/workshop-repository

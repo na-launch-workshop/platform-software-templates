@@ -231,4 +231,4 @@ spec:
         url: ${{ steps.publish.output.remoteUrl }}
       - title: Open in catalog
         icon: catalog
-        entityRef: ${{ steps.registerCatalog.output.entityRef }}
+        entityRef: component:default/workshop-repository

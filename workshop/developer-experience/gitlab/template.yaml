@@ -198,6 +198,8 @@ spec:
             sku: ${{ parameters.kafka.kafkaMachineType }}
             enableCapacity: ${{ parameters.kafka.enableKafka }}
             count: ${{ parameters.kafka.kafkaMachineCount }}
+          rhoai:
+            enableRhoai: ${{ parameters.rhoai.enableRhoai }}
           gitlabRepository: ${{ parameters.general.gitlabRepository }}
 
     #################################

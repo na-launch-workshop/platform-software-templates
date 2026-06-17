@@ -13,6 +13,8 @@ spec:
           - path: services/*/*/overlays/dev
         values:
           service: "{{index .path.segments 1}}-{{index .path.segments 2}}"
+          userNamespace: "{{index .path.segments 1}}-devspaces"
+          serviceName: "{{index .path.segments 2}}"
   template:
     metadata:
       name: "{{.values.service}}-service"
@@ -27,7 +29,7 @@ spec:
             env: '{{.path.basename}}'
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{.values.service}}'
+        namespace: '{{ if eq .values.serviceName "kafka-instance" }}{{ .values.userNamespace }}{{ else }}{{ .values.service }}{{ end }}'
       syncPolicy:
         automated:
           prune: true

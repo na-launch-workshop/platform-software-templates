@@ -75,6 +75,7 @@ spec:
         targetPath: "./services/${{ user.entity.metadata.name }}/kafka-instance/base"
         values:
           name: ${{ parameters.name }}
+          namespace: ${{ user.entity.metadata.name }}-devspaces
 
     - id: templateKafkaInstanceEntity
       name: Template Kafka Component
@@ -84,7 +85,8 @@ spec:
         targetPath: "backstage/${{ user.entity.metadata.name }}/kafka-instance"
         values:
           name: ${{ parameters.name }}-kafka
-          bootstrapService: kafka-kafka-bootstrap.${{ parameters.name }}-kafka.svc.cluster.local
+          namespace: ${{ user.entity.metadata.name }}-devspaces
+          bootstrapService: kafka-kafka-bootstrap.${{ user.entity.metadata.name }}-devspaces.svc.cluster.local
           owner: |
             ${{ "user:" + user.entity.metadata.namespace + "/" + user.entity.metadata.name if user.entity.metadata.namespace else "default/guest" }}
           rootSelfServiceRepo: ${{ parameters.workshopRepo }}
@@ -117,4 +119,4 @@ spec:
         entityRef: ${{ steps['registerCatalog'].output.entityRef }}
     text:
       - title: "Namespace"
-        content: "${{ user.entity.metadata.name }}-kafka-instance"
+        content: "${{ user.entity.metadata.name }}-devspaces"

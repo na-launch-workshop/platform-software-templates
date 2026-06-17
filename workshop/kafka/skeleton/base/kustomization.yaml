@@ -2,4 +2,4 @@ helmCharts:
   - name: "kafka-instance"
     repo: "https://na-launch-workshop.github.io/platform-supporting-charts"
     version: "*"
-    namespace: "${{ values.name }}-kafka"
+    namespace: "${{ values.namespace }}"

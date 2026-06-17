@@ -133,9 +133,6 @@ spec:
         defaultBranch: main
         settings:
           visibility: "internal"
-        branches:
-          - name: main
-            protect: true
 
     ##########################
     ## Template the Repository

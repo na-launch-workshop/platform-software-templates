@@ -1,5 +1,5 @@
 helmCharts:
-  - name: "create-kafka-instance"
+  - name: "kafka-instance"
     repo: "https://na-launch-workshop.github.io/platform-supporting-charts"
     version: "1.0.0"
     namespace: "${{ values.name }}-kafka"

@@ -1,9 +1,0 @@
-helmCharts:
-  - name: "kafka-instance"
-    repo: "https://na-launch-workshop.github.io/platform-supporting-charts"
-    version: "1.0.0"
-    namespace: "${{ values.name }}-kafka"
-    valuesInline:
-      name: ${{ values.name }}-instance
-      userName: ${{ values.name }}
-      capacityEnabled: ${{ values.capacityEnabled }}

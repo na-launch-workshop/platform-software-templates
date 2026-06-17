@@ -2,7 +2,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: ${{ values.name }}
-  description: Kafka Instance
+  description: Kafka Instance with UI and topic management
   annotations:
     argocd/app-selector: backstage-name=${{ values.name }}
   tags:
@@ -18,5 +18,5 @@ spec:
   dependsOn:
     - ${{ values.rootSelfServiceRepo }}
   kafka:
-    brokerService: ${{ values.brokerService }}
     bootstrapService: ${{ values.bootstrapService }}
+    kafkaUIEnabled: ${{ values.kafkaUIEnabled }}

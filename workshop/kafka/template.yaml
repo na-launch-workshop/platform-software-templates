@@ -104,7 +104,7 @@ spec:
       name: Template Kafka Component
       action: fetch:template
       input:
-        url: "../../skeletons/backstage/create-kafka-instance"
+        url: "../../skeletons/backstage/kafka-instance"
         targetPath: "backstage/${{ user.entity.metadata.name }}/kafka-instance"
         values:
           name: ${{ parameters.name }}-kafka

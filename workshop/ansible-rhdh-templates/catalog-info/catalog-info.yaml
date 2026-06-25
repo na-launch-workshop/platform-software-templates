@@ -21,7 +21,7 @@ metadata:
     - collection
     {%- endif %}
   annotations:
-    backstage.io/techdocs-ref: dir:.
+    # backstage.io/techdocs-ref: dir:.   ## commented out since template does not generate techdocs
     {%- if values.sourceControl == "gitlab.com" %}
     gitlab.com/project-slug: ${{ values.repoUrl | projectSlug }}
     {%- elif values.sourceControl == "github.com" %}
